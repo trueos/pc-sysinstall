@@ -1,0 +1,8 @@
+bin/pc-autoupdate
+bin/pc-updatemanager
+etc/pcupdate.d/post/README
+etc/pcupdate.d/pre/README
+share/pcbsd/pc-updatemanager/conf/security.key
+share/pcbsd/pc-updatemanager/conf/sysupdate.conf
+share/pcbsd/pc-updatemanager/rc-doupdate
+share/pcbsd/pc-updatemanager/rc-update
