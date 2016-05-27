@@ -685,7 +685,6 @@ init_gpt_full_disk()
     echo "${_intDISK}" >> ${TMPDIR}/.grub-install
   fi
 
-  BOOTMODE=`sysctl -n machdep.bootmethod`
   # Check the boot mode we are using {pc|efi}
   if [ "$BOOTMODE" = "UEFI" ]; then
     # Need to enable EFI booting, lets add the partition
@@ -803,6 +802,15 @@ run_gpart_gpt_part()
   # Stop any journaling
   stop_gjournal "${slice}"
 
+  # Save this disk to be used for EFI later
+  if [ "$BOOTMODE" = "UEFI" ]; then
+    if [ -z "${EFI_POST_SETUP}" ] ; then
+      EFI_POST_SETUP="${DISK}"
+    else
+      EFI_POST_SETUP="${EFI_POST_SETUP} ${DISK}"
+    fi
+  fi
+
   # We only install boot-loader if using GRUB for dual-boot GPT
   if [ "${_intBOOT}" = "GRUB" ] ; then
     # Doing a GRUB stamp? Lets save it for post-install
@@ -811,8 +819,10 @@ run_gpart_gpt_part()
       echo "${DISK}" >> ${TMPDIR}/.grub-install
     fi
   else
-    # Setting boot for GhostBSD utile grub support is part of the Project.
-    rc_halt "gpart bootcode -b /boot/pmbr ${DISK}"
+    if [ "$BOOTMODE" ! = "UEFI" ] ; then
+      # Setting boot for GhostBSD utile grub support is part of the Project.
+      rc_halt "gpart bootcode -b /boot/pmbr ${DISK}"
+    fi
   fi
 
   # Adding slice information
@@ -932,12 +942,23 @@ run_gpart_free()
   fi
 
   if [ "$tag" = "freegpt" -a "$SLICENUM" -eq 1 ] ; then
-    # Doing bios-boot partition
-    rc_halt "gpart add -s 1M -t bios-boot ${DISK}"
+    if [ "$BOOTMODE" != "UEFI" ]; then
+      # Doing bios-boot partition
+      rc_halt "gpart add -s 1M -t bios-boot ${DISK}"
+    fi
     SLICENUM="2"
   fi
 
-  if [ "${BMANAGER}" = "BSD" ]; then
+  # Save this disk to be used for EFI later
+  if [ "$BOOTMODE" = "UEFI" ]; then
+    if [ -z "${EFI_POST_SETUP}" ] ; then
+      EFI_POST_SETUP="${DISK}"
+    else
+      EFI_POST_SETUP="${EFI_POST_SETUP} ${DISK}"
+    fi
+  fi
+
+  if [ "${BMANAGER}" = "BSD" -a "$BOOTMODE" != "UEFI" ]; then
     echo_log "Stamping boot sector on ${DISK}"
     rc_halt "gpart bootcode -b /boot/boot0 ${DISK}"
   elif [ "${BMANAGER}" = "GRUB" ] ; then

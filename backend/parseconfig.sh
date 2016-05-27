@@ -63,6 +63,10 @@ CFGF="$1"
 CFGF="`realpath ${CFGF}`"
 export CFGF
 
+# Figure out if UEFI or BIOS
+BOOTMODE=`sysctl -n machdep.bootmethod`
+export BOOTMODE
+
 # Start by doing a sanity check, which will catch any obvious mistakes in the config
 
 # We passed the Sanity check, lets grab some of the universal config settings and store them
