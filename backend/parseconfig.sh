@@ -67,6 +67,11 @@ export CFGF
 BOOTMODE=`sysctl -n machdep.bootmethod`
 export BOOTMODE
 
+# Check if booted via GRUB and set BOOTMODE correctly (For GhostBSD and friends)
+if [ -n "`kenv grub.platform`" -a "`kenv grub.platform`" = "efi" ] ; then
+  BOOTMODE="UEFI"
+fi
+
 # Start by doing a sanity check, which will catch any obvious mistakes in the config
 
 # We passed the Sanity check, lets grab some of the universal config settings and store them

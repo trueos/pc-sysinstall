@@ -320,7 +320,6 @@ get_autosize()
   _aSize=`expr $_aSize - 5`
 
   # If installing to UEFI, save 100MB for UEFI partition
-  BOOTMODE=`sysctl -n machdep.bootmethod`
   if [ "$BOOTMODE" = "UEFI" ]; then
     _aSize=`expr $_aSize - 100`
   fi
