@@ -76,6 +76,7 @@ localize_x_desktops() {
     echo "LC_CTYPE=\"${LOCALE}.UTF-8\"" >> ${FSMNT}/usr/local/etc/gdm/locale.conf
     echo "LC_MESSAGES=\"${LOCALE}.UTF-8\"" >> ${FSMNT}/usr/local/etc/gdm/locale.conf
   fi
+  cat ${FSMNT}/etc/rc.conf 2>/dev/null | grep -q "gdm_enable=\"YES\"" 2>/dev/null
   if [ "$?" = "0" ] ; then
     echo "gdm_lang=\"${LOCALE}.UTF-8\"" >> ${FSMNT}/etc/rc.conf
   fi
