@@ -14,7 +14,7 @@ USES=		pkgconfig tar:xz
 MAKE_ARGS=	PREFIX=${STAGEDIR}${PREFIX}
 
 USE_GITHUB=	yes
-GH_ACCOUNT=	pcbsd
+GH_ACCOUNT=	trueos
 GH_PROJECT=	pc-sysinstall
 GH_TAGNAME=	%%GHTAG%%
 

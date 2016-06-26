@@ -307,7 +307,7 @@ gen_hostname()
   then
     VAL="freebsd-${RAND}" 
   else
-    VAL="pcbsd-${RAND}" 
+    VAL="trueos-${RAND}" 
   fi
 
   export VAL
