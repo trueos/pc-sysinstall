@@ -302,7 +302,12 @@ get_zpool_name()
       fi
       zpool list | grep -qw "${NEWNAME}"
       local chk1=$?
-      if [ $chk1 -eq 1 ] ; then break ; fi
+      if [ $chk1 -eq 1 ] ; then
+        # Check any exported pools also
+        zpool import | grep -qw "${NEWNAME}"
+        chk1=$?
+        if [ $chk1 -eq 1 ] ; then break; fi
+      fi
       NUM=$((NUM+1))
     done
 
