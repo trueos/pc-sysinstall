@@ -68,7 +68,7 @@ BOOTMODE=`sysctl -n machdep.bootmethod`
 export BOOTMODE
 
 # Check if booted via GRUB and set BOOTMODE correctly (For GhostBSD and friends)
-if [ -n "`kenv grub.platform`" -a "`kenv grub.platform`" = "efi" ] ; then
+if [ -n "`kenv grub.platform 2>/dev/null`" -a "`kenv grub.platform 2>/dev/null`" = "efi" ] ; then
   BOOTMODE="UEFI"
 fi
 
@@ -85,6 +85,8 @@ if [ "$INSTALLMODE" = "zfsrestore" ] ; then
   file_sanity_check "sshHost sshPort sshUser zfsRemoteDataset"
 elif [ "$INSTALLMODE" = "zfsrestoreiscsi" ] ; then
   file_sanity_check "iscsiFile iscsiPass"
+elif [ "$INSTALLMODE" = "upgrade" ] ; then
+  file_sanity_check "zpoolName"
 else
   file_sanity_check "installMode installType installMedium packageType"
   check_value installType "PCBSD FreeBSD GhostBSD DesktopBSD"

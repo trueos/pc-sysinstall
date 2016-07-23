@@ -21,11 +21,11 @@ extracting the install images to the system. Using this mode
 it is also possible to do a system restore, by specifying a
 full system backup as the install source.
 
-Upgrades will mount the target disk, and extract the system
-archive to the disk, overwriting files on the disk. 
-The conf/exclude-from-upgrade file can be used to specify
-additional files to exclude from overwriting during the
-install process.
+Upgrades will import the specified ZFS pool using the
+zpoolName= variable. Once imported a new BE will be created and
+a fresh install performed, preserving old datasets. No merging
+is done, to provide a 'fresh' experience and avoid conflicts
+when installing older versions of the OS into a pool.
 
 Extract will skip any disk setup, and perform an installation
 to the directory specified by "installLocation=". This location
