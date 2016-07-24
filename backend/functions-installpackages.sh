@@ -71,6 +71,12 @@ install_packages()
   # Lets start by cleaning up the string and getting it ready to parse
   get_value_from_cfg_with_spaces installPackages
   PACKAGES="${VAL}"
+
+  # When doing an upgrade, check if we need to also install GRUB pkgs
+  if [ -n "$FORCEPKGINSTALLGRUB" ] ; then
+    PACKAGES="$PACKAGES sysutils/grub2-pcbsd sysutils/grub2-efi"
+  fi
+
   echo_log "Packages to install: `echo $PACKAGES | wc -w | awk '{print $1}'`"
   for i in $PACKAGES
   do

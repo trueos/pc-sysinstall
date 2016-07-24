@@ -35,7 +35,19 @@ mount_zpool_upgrade()
   # Lets start by importing the specified zpool
   rc_halt "zpool import -f -R ${FSMNT} -N ${ZPOOLCUSTOMNAME}"
 
-  # Zpool imported, lets create a new BE now
+  # Before we create a new BE, we are going to mount the most recent BE and
+  # take a look around. If this was using GRUB boot-loader, we have to save some
+  # files
+  newestBE=`zfs list -H -r ${ZPOOLCUSTOMNAME}/ROOT | tail -n 1 | awk '{print $1}'`
+  rc_halt "mount -t zfs ${newestBE} ${FSMNT}"
+  if [ -e "${FSMNT}/boot/grub/grub.cfg" ] ; then
+    # We have a GRUB installation, save some files
+    tar cvf ${TMPDIR}/GRUB-cfg.tar -C ${FSMNT} ./usr/local/etc/default/grub ./usr/local/etc/beadm.conf ./boot/efi
+    export FORCEPKGINSTALLGRUB="YES"
+  fi
+  rc_halt "umount ${FSMNT}"
+
+  # Lets create a new BE now
   BEDATASET="${ZPOOLCUSTOMNAME}/ROOT/`uname -r`-`date +%Y%m%d%H%M`"
   rc_halt "zfs create -o canmount=noauto ${BEDATASET}"
 
@@ -54,6 +66,13 @@ unmount_upgrade()
      rc_halt "cp /root/beadm.install ${FSMNT}/root/beadm.install"
      rc_halt "chmod 755 ${FSMNT}/root/beadm.install"
      rc_halt "chroot ${FSMNT} /root/beadm.install activate `basename ${BEDATASET}`"
+
+     # Check if we need to restamp grub
+     if [ -e "${TMPDIR}/GRUB-cfg.tar" ] ; then
+       rc_halt "tar xvpf ${TMPDIR}/GRUB-cfg.tar -C ${FSMNT}"
+       rc_halt "chroot ${FSMNT} grub-mkconfig -o /boot/grub/grub.cfg"
+     fi
+
      rc_halt "rm ${FSMNT}/root/beadm.install"
      rc_halt "umount -f ${FSMNT}/dev"
   fi
