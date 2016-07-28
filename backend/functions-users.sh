@@ -35,7 +35,7 @@
 check_autologin()
 {
   get_value_from_cfg autoLoginUser
-  if [ -n "${VAL}"  -a "${INSTALLTYPE}" = "PCBSD" ]
+  if [ -n "${VAL}"  -a "${INSTALLTYPE}" = "TrueOS" ]
   then
     AUTOU="${VAL}"
     # Add the auto-login user line
