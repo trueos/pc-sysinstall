@@ -13,6 +13,7 @@ sbin/pc-sysinstall
 %%DATADIR%%/backend-query/list-mirrors.sh
 %%DATADIR%%/backend-query/list-rsync-backups.sh
 %%DATADIR%%/backend-query/list-tzones.sh
+%%DATADIR%%/backend-query/list-zpools.sh
 %%DATADIR%%/backend-query/query-langs.sh
 %%DATADIR%%/backend-query/send-logs.sh
 %%DATADIR%%/backend-query/set-mirror.sh

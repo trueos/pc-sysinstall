@@ -173,6 +173,10 @@ case $1 in
   list-tzones) ${QUERYDIR}/list-tzones.sh
   ;;
 
+  # Function which lists timezones available
+  list-zpools) ${QUERYDIR}/list-zpools.sh
+  ;;
+
   # Requested a list of languages this install will support
   query-langs) ${QUERYDIR}/query-langs.sh
   ;;

@@ -302,7 +302,12 @@ get_zpool_name()
       fi
       zpool list | grep -qw "${NEWNAME}"
       local chk1=$?
-      if [ $chk1 -eq 1 ] ; then break ; fi
+      if [ $chk1 -eq 1 ] ; then
+        # Check any exported pools also
+        zpool import | grep -qw "${NEWNAME}"
+        chk1=$?
+        if [ $chk1 -eq 1 ] ; then break; fi
+      fi
       NUM=$((NUM+1))
     done
 
@@ -462,7 +467,7 @@ install_fresh()
     run_preextract_commands
 
     # We are ready to begin extraction, lets start now
-    init_extraction 
+    init_extraction
 
     # Check if we have any optional modules to load 
     install_components
@@ -475,7 +480,7 @@ install_fresh()
 
     # Do any localization in configuration
     run_localize
-  
+
     # Save any networking config on the installed system
     save_networking_install
 
@@ -502,7 +507,7 @@ install_extractonly()
   run_preextract_commands
 
   # We are ready to begin extraction, lets start now
-  init_extraction 
+  init_extraction
 
   # Check if we have any optional modules to load 
   install_components
@@ -537,7 +542,7 @@ install_extractonly()
 install_image()
 {
   # We are ready to begin extraction, lets start now
-  init_extraction 
+  init_extraction
 
   echo_log "Installation finished!"
 };
@@ -545,23 +550,14 @@ install_image()
 install_upgrade()
 {
   # We're going to do an upgrade, skip all the disk setup 
-  # and start by mounting the target drive/slices
-  mount_upgrade
+  # and start by importing an existing zpool
+  mount_zpool_upgrade
   
   # Run any pre-extract commands
   run_preextract_commands
 
-  # Start the extraction process
+  # We are ready to begin extraction, lets start now
   init_extraction
-
-  # Do any localization in configuration
-  run_localize
-
-  # Now run any commands specified
-  run_commands
-  
-  # Merge any old configuration files
-  merge_old_configs
 
   # Check if we have any optional modules to load 
   install_components
@@ -571,6 +567,21 @@ install_upgrade()
 
   # Check if we have any packages to install
   install_packages
+
+  # Do any localization in configuration
+  run_localize
+
+  # Save any networking config on the installed system
+  save_networking_install
+
+  # Now add any users
+  setup_users
+
+  # Do any last cleanup / setup before unmounting
+  run_final_cleanup
+
+  # Now run any commands specified
+  run_commands
 
   # All finished, unmount the file-systems
   unmount_upgrade
