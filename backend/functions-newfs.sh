@@ -135,21 +135,13 @@ setup_filesystems()
 
       if [ -e "${PARTDIR}-enc/${PART}-encpass" ] ; then
 	# Using a passphrase
-		if [ "${INSTALLTYPE}" = "GhostBSD" ] ; then
-		  rc_halt "geli init -b -J ${PARTDIR}-enc/${PART}-encpass ${PARTDEV}"
-		else
-          rc_halt "geli init -g -b -J ${PARTDIR}-enc/${PART}-encpass ${PARTDEV}"
-        fi
+        rc_halt "geli init -g -b -J ${PARTDIR}-enc/${PART}-encpass ${PARTDEV}"
         rc_halt "geli attach -j ${PARTDIR}-enc/${PART}-encpass ${PARTDEV}"
 	touch ${TMPDIR}/.grub-install-geli
       else
 	# No Encryption password, use key file
         rc_halt "dd if=/dev/random of=${GELIKEYDIR}/${PART}.key bs=64 count=1"
-        if [ "${INSTALLTYPE}" = "GhostBSD" ] ; then
-          rc_halt "geli init -b -s 4096 -P -K ${GELIKEYDIR}/${PART}.key ${PARTDEV}"
-        else
-          rc_halt "geli init -g -b -s 4096 -P -K ${GELIKEYDIR}/${PART}.key ${PARTDEV}"
-        fi
+        rc_halt "geli init -g -b -s 4096 -P -K ${GELIKEYDIR}/${PART}.key ${PARTDEV}"
         rc_halt "geli attach -p -k ${GELIKEYDIR}/${PART}.key ${PARTDEV}"
 
       fi
@@ -165,11 +157,7 @@ setup_filesystems()
        for gC in $GELI_CLONE_ZFS_DISKS
        do
          echo_log "Setting up GELI on mirrored disks: ${gC}"
-         if [ "${INSTALLTYPE}" = "GhostBSD" ] ; then
-           rc_halt "geli init -b -J ${PARTDIR}-enc/${PART}-encpass ${gC}"
-         else
-           rc_halt "geli init -g -b -J ${PARTDIR}-enc/${PART}-encpass ${gC}"
-         fi
+         rc_halt "geli init -g -b -J ${PARTDIR}-enc/${PART}-encpass ${gC}"
          rc_halt "geli attach -j ${PARTDIR}-enc/${PART}-encpass ${gC}"
        done
     fi
