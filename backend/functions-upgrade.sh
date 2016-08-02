@@ -70,6 +70,10 @@ unmount_upgrade()
      # Check if we need to restamp grub
      if [ -e "${TMPDIR}/GRUB-cfg.tar" ] ; then
        rc_halt "tar xvpf ${TMPDIR}/GRUB-cfg.tar -C ${FSMNT}"
+
+       # Change any pcbsd -> trueos references
+       sed -i '' 's|pcbsd|trueos|g' ${FSMNT}/usr/local/etc/default/grub
+
        rc_halt "chroot ${FSMNT} grub-mkconfig -o /boot/grub/grub.cfg"
      fi
 
