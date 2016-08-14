@@ -42,7 +42,11 @@ localize_freebsd()
     sed -i '' "s/LC_ALL=en_US/LC_ALL=${LOCALE}/g" ${FSMNT}/etc/profile
   fi
   
-
+  if [ "${INSTALLTYPE}" = "DesktopBSD" ] ; then
+    sed -i '' "s/LANG=en_US/LANG=${LOCALE}/g" ${FSMNT}/etc/profile
+    sed -i '' "s/GDM_LANG=en_US/GDM_LANG=${LOCALE}/g" ${FSMNT}/etc/profile
+    sed -i '' "s/LC_ALL=en_US/LC_ALL=${LOCALE}/g" ${FSMNT}/etc/profile
+  fi
 };
 
 localize_x_desktops() {
@@ -123,6 +127,14 @@ localize_x_keyboard()
     localize_key_layout "$KEYLAY"
     SETXKBMAP="${SETXKBMAP} -layout ${KEYLAY}"
     KXLAYOUT="${KEYLAY}"
+  if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/90_org.gnome.desktop.input-sources.gschema.override ] ; then
+        sed -i '' "s/'us+/'${KEYLAY}+/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/90_org.gnome.desktop.input-sources.gschema.override
+        run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
+  fi
+  if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override ] ; then
+        sed -i '' "s|us\\\|${KEYLAY}\\\|g" ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override
+        run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
+  fi
   else
     KXLAYOUT="us"
   fi
@@ -131,6 +143,15 @@ localize_x_keyboard()
   then
     SETXKBMAP="${SETXKBMAP} -variant ${KEYVAR}"
     KXVAR="(${KEYVAR})"
+  if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/90_org.gnome.desktop.input-sources.gschema.override ] ; then
+        sed -i '' "s/+std/+${KEYVAR}/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/90_org.gnome.desktop.input-sources.gschema.override
+        run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
+  fi
+    if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override ] ; then
+        sed -i '' "s/std/${KEYVAR}/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override
+        run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
+  fi
+
   else
     KXVAR=""
   fi
