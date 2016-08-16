@@ -122,6 +122,11 @@ do
     DLIST="${DEV}:${NEWLINE}${DLIST}"
   else
     # USB Device, we list those last
+
+    # First, lets make sure that this isn't install media
+    glabel status | grep "${DEV}p3" | grep -q "TRUEOS_INSTALL"
+    if [ $? -eq 0 ] ; then continue; fi
+
     if [ -n "$USBLIST" ]; then
       USBLIST="\n${USBLIST}"
     fi
