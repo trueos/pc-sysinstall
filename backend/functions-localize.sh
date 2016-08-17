@@ -165,14 +165,14 @@ localize_x_keyboard()
   fi
 
   # For GhostBSD Mate
-  if [ "${KXVAR}" == ""] ; then
+  if [ "${KEYVAR}" == "NONE" ] ; then
     if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override ] ; then
-        sed -i '' "s/us/${KEYLAY}/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override
+        sed -i '' "s/us/${KXLAYOUT}/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override
         run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
     fi
   else
     if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override ] ; then
-        sed -i '' "s/us/${KEYLAY}\\\t${KXLAYOUT}/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override
+        sed -i '' "s/us/${KXLAYOUT}\\\t${KXVAR}/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override
         run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
     fi
   fi
