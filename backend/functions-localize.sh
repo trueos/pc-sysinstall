@@ -41,7 +41,7 @@ localize_freebsd()
     sed -i '' "s/GDM_LANG=en_US/GDM_LANG=${LOCALE}/g" ${FSMNT}/etc/profile
     sed -i '' "s/LC_ALL=en_US/LC_ALL=${LOCALE}/g" ${FSMNT}/etc/profile
   fi
-  
+
   if [ "${INSTALLTYPE}" = "DesktopBSD" ] ; then
     sed -i '' "s/LANG=en_US/LANG=${LOCALE}/g" ${FSMNT}/etc/profile
     sed -i '' "s/GDM_LANG=en_US/GDM_LANG=${LOCALE}/g" ${FSMNT}/etc/profile
@@ -114,51 +114,40 @@ localize_x_keyboard()
     COUNTRY=",${COUNTRY}"
   fi
 
-  if [ "${KEYMOD}" != "NONE" ]
-  then
+  if [ "${KEYMOD}" != "NONE" ] ; then
     SETXKBMAP="-model ${KEYMOD}"
     KXMODEL="${KEYMOD}"
   else
     KXMODEL="pc104"
   fi
 
-  if [ "${KEYLAY}" != "NONE" ]
-  then
+  if [ "${KEYLAY}" != "NONE" ] ; then
     localize_key_layout "$KEYLAY"
     SETXKBMAP="${SETXKBMAP} -layout ${KEYLAY}"
     KXLAYOUT="${KEYLAY}"
-  if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/90_org.gnome.desktop.input-sources.gschema.override ] ; then
-        sed -i '' "s/'us+/'${KEYLAY}+/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/90_org.gnome.desktop.input-sources.gschema.override
-        run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
-  fi
-  if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override ] ; then
-        sed -i '' "s|us\\\|${KEYLAY}\\\|g" ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override
-        run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
-  fi
+    if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/90_org.gnome.desktop.input-sources.gschema.override ] ; then
+      sed -i '' "s/'us+/'${KEYLAY}+/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/90_org.gnome.desktop.input-sources.gschema.override
+      run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
+    fi
   else
     KXLAYOUT="us"
   fi
 
-  if [ "${KEYVAR}" != "NONE" ]
-  then
+  if [ "${KEYVAR}" != "NONE" ] ; then
     SETXKBMAP="${SETXKBMAP} -variant ${KEYVAR}"
     KXVAR="(${KEYVAR})"
-  if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/90_org.gnome.desktop.input-sources.gschema.override ] ; then
-        sed -i '' "s/+std/+${KEYVAR}/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/90_org.gnome.desktop.input-sources.gschema.override
-        run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
-  fi
-    if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override ] ; then
-        sed -i '' "s/std/${KEYVAR}/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override
-        run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
-  fi
-
+    if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/90_org.gnome.desktop.input-sources.gschema.override ] ; then
+      sed -i '' "s/+std/+${KEYVAR}/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/90_org.gnome.desktop.input-sources.gschema.override
+      run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
+    fi
   else
     KXVAR=""
   fi
 
+
+
   # Setup .xprofile with our setxkbmap call now
-  if [ ! -z "${SETXKBMAP}" ]
-  then
+  if [ ! -z "${SETXKBMAP}" ] ; then
     if [ ! -e "${FSMNT}/usr/share/skel/.xprofile" ]
     then
       echo "#!/bin/sh" >${FSMNT}/usr/share/skel/.xprofile
@@ -172,6 +161,19 @@ localize_x_keyboard()
     # Save it for KDM
     if [ -e "${FSMNT}/usr/local/kde4/share/config/kdm/Xsetup" ] ; then
       echo "setxkbmap ${SETXKBMAP}" >>${FSMNT}/usr/local/kde4/share/config/kdm/Xsetup
+    fi
+  fi
+
+  # For GhostBSD Mate
+  if [ "${KXVAR}" == ""] ; then
+    if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override ] ; then
+        sed -i '' "s/us/${KEYLAY}/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override
+        run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
+    fi
+  else
+    if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override ] ; then
+        sed -i '' "s/us/${KEYLAY}\\\t${KXLAYOUT}/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override
+        run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
     fi
   fi
 
