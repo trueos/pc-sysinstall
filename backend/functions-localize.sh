@@ -172,7 +172,7 @@ localize_x_keyboard()
     fi
   else
     if [ -f ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override ] ; then
-        sed -i '' "s/us/${KXLAYOUT}\\\t${KXVAR}/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override
+        sed -i '' "s/us/${KXLAYOUT}\\\t${KEYVAR}/g" ${FSMNT}/usr/local/share/glib-2.0/schemas/92_org.mate.peripherals-keyboard-xkb.kbd.gschema.override
         run_chroot_cmd "glib-compile-schemas /usr/local/share/glib-2.0/schemas/"
     fi
   fi
