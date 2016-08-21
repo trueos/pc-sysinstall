@@ -93,7 +93,7 @@ start_extract_dist()
   for di in $INSFILE
   do
       # Check the MANIFEST see if we have an archive size / count
-      if [ -e "${DDIR}/MANIFEST" ]; then 
+      if [ -e "${DDIR}/MANIFEST" ]; then
          count=`grep "^${di}.txz" ${DDIR}/MANIFEST | awk '{print $3}'`
 	 if [ ! -z "$count" ] ; then
             echo "INSTALLCOUNT: $count"
@@ -185,14 +185,14 @@ start_extract_uzip_tar()
       ;;
     livecd)
      # GhostBSD specific (prepare a ro layer to copy from)
-      # Copying file to disk 
+      # Copying file to disk
 
 #      rsync -avH --exclude 'media/*' --exclude 'proc/*' --exclude 'mnt/*' --exclude 'tmp/*' --exclude 'dist/*' --exclude 'gbi' --exclude 'cdmnt-install' ${CDMNT}/ ${FSMNT} >&1 2>&1
 
 # copying hard links from cd9660 fs result in expanded individual files instead of links, i.e. making /rescue large as 1GB
 # bsdtar instead appear to restore hard links correctly
 
-      tar xvf `cat ${TMPDIR}/cdmnt` -C ${FSMNT}/ --exclude 'dist/*' 
+      tar xvf `cat ${TMPDIR}/cdmnt` -C ${FSMNT}/ --exclude 'dist/*'
       if [ "$?" != "0" ]
       then
         exit_err "ERROR: Failed to copy (tar) files"
@@ -202,7 +202,7 @@ start_extract_uzip_tar()
       mkdir -p  ${CDMNT}${UZIP_DIR}
       mount -o ro /dev/${DEVICE}.uzip ${CDMNT}${UZIP_DIR}
 
-      rsync -avH --exclude 'media/*' --exclude 'proc/*' --exclude 'mnt/*' --exclude 'tmp/*' --exclude 'dist/*' --exclude 'gbi' --exclude 'cdmnt-install' ${CDMNT}${UZIP_DIR} ${FSMNT}/
+      rsync -avH --exclude 'media/*' --exclude 'proc/*' --exclude 'mnt/*' --exclude 'dist/*' --exclude 'cdmnt-install' ${CDMNT}${UZIP_DIR} ${FSMNT}/
       chmod 755 ${FSMNT}/
       if [ "$?" != "0" ]
       then
@@ -221,8 +221,8 @@ start_extract_uzip_tar()
   if [ "${INSTALLMEDIUM}" = "ftp" ]
   then
     echo_log "Cleaning up downloaded archive"
-    rm ${INSFILE} 
-    rm ${INSFILE}.count >/dev/null 2>/dev/null 
+    rm ${INSFILE}
+    rm ${INSFILE}.count >/dev/null 2>/dev/null
     rm ${INSFILE}.md5 >/dev/null 2>/dev/null
   fi
 
@@ -262,7 +262,7 @@ start_extract_split()
     fi
   done
   cd "${HERE}"
-  
+
   KERNELS=`ls -d ${INSDIR}/*|grep kernels`
   cd "${KERNELS}"
   if [ -f "install.sh" ]
@@ -304,7 +304,7 @@ fetch_dist_file()
   get_value_from_cfg ftpPath
   if [ -z "$VAL" ]
   then
-    exit_err "ERROR: Install medium was set to ftp, but no ftpPath was provided!" 
+    exit_err "ERROR: Install medium was set to ftp, but no ftpPath was provided!"
   fi
 
   FTPPATH="${VAL}"
@@ -312,7 +312,7 @@ fetch_dist_file()
   ARCH=`uname -m`
   FTPPATH=`echo $FTPPATH | sed "s|%VERSION%|${FBSDVER}|g"`
   FTPPATH=`echo $FTPPATH | sed "s|%ARCH%|${ARCH}|g"`
-  
+
   # Check if we have a /usr partition to save the download
   if [ -d "${FSMNT}/usr" ]
   then
@@ -341,11 +341,11 @@ fetch_install_file()
   get_value_from_cfg ftpPath
   if [ -z "$VAL" ]
   then
-    exit_err "ERROR: Install medium was set to ftp, but no ftpPath was provided!" 
+    exit_err "ERROR: Install medium was set to ftp, but no ftpPath was provided!"
   fi
 
   FTPPATH="${VAL}"
-  
+
   # Check if we have a /usr partition to save the download
   if [ -d "${FSMNT}/usr" ]
   then
@@ -374,14 +374,14 @@ fetch_split_files()
   get_ftpHost
   if [ -z "$VAL" ]
   then
-    exit_err "ERROR: Install medium was set to ftp, but no ftpHost was provided!" 
+    exit_err "ERROR: Install medium was set to ftp, but no ftpHost was provided!"
   fi
   FTPHOST="${VAL}"
 
   get_ftpDir
   if [ -z "$VAL" ]
   then
-    exit_err "ERROR: Install medium was set to ftp, but no ftpDir was provided!" 
+    exit_err "ERROR: Install medium was set to ftp, but no ftpDir was provided!"
   fi
   FTPDIR="${VAL}"
 
@@ -487,7 +487,7 @@ start_rsync_copy()
     fi
 
     COUNT=$((COUNT+1))
-  done 
+  done
 
 };
 
@@ -548,12 +548,12 @@ init_extraction()
       case $PACKAGETYPE in
         uzip) INSFILE="${FBSD_UZIP_FILE}" ;;
         tar) INSFILE="${FBSD_TAR_FILE}" ;;
-        dist) 
+        dist)
 	  get_value_from_cfg_with_spaces distFiles
 	  if [ -z "$VAL" ] ; then
 	     exit_err "No dist files specified!"
 	  fi
-	  INSFILE="${VAL}" 
+	  INSFILE="${VAL}"
   	  ;;
         split)
           INSDIR="${FBSD_BRANCH_DIR}"
@@ -570,12 +570,12 @@ init_extraction()
       case $PACKAGETYPE in
         uzip) INSFILE="${UZIP_FILE}" ;;
         tar) INSFILE="${TAR_FILE}" ;;
-        dist) 
+        dist)
 	  get_value_from_cfg_with_spaces distFiles
 	  if [ -z "$VAL" ] ; then
 	     exit_err "No dist files specified!"
 	  fi
-	  INSFILE="${VAL}" 
+	  INSFILE="${VAL}"
   	  ;;
       esac
     fi
@@ -585,8 +585,8 @@ init_extraction()
   # Lets start by figuring out what medium we are using
   case ${INSTALLMEDIUM} in
     dvd|usb)
-      # Lets start by mounting the disk 
-      opt_mount 
+      # Lets start by mounting the disk
+      opt_mount
       if [ -n "${INSDIR}" ]
       then
         INSDIR="${CDMNT}/${INSDIR}" ; export INSDIR
@@ -616,7 +616,7 @@ init_extraction()
 	   ;;
 	     *)
            fetch_install_file
-           start_extract_uzip_tar 
+           start_extract_uzip_tar
 	   ;;
        esac
       ;;
