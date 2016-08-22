@@ -184,18 +184,21 @@ start_extract_uzip_tar()
       fi
       ;;
     livecd)
-     # GhostBSD specific (prepare a ro layer to copy from)
+      # GhostBSD specific (prepare a ro layer to copy from)
       # Copying file to disk
-
-#      rsync -avH --exclude 'media/*' --exclude 'proc/*' --exclude 'mnt/*' --exclude 'tmp/*' --exclude 'dist/*' --exclude 'gbi' --exclude 'cdmnt-install' ${CDMNT}/ ${FSMNT} >&1 2>&1
-
-# copying hard links from cd9660 fs result in expanded individual files instead of links, i.e. making /rescue large as 1GB
-# bsdtar instead appear to restore hard links correctly
-
+      # copying hard links from cd9660 fs result in expanded
+      # individual files instead of links, i.e. making /rescue large as 1GB
+      # bsdtar instead appear to restore hard links correctly
       tar xvf `cat ${TMPDIR}/cdmnt` -C ${FSMNT}/ --exclude 'dist/*'
-      if [ "$?" != "0" ]
-      then
+      if [ "$?" != "0" ] ; then
         exit_err "ERROR: Failed to copy (tar) files"
+      fi
+      # Copying ifvbox to the drive.
+      if [ "$INSTALLTYPE" = "GhostBSD" ] ; then
+        cp -vf /tmp/.ifvbox {FSMNT}/tmp/.ifvbox
+      fi
+      if [ "$?" != "0" ] ; then
+        exit_err "ERROR: Failed to copy .ifvbox"
       fi
 
       DEVICE=$(mdconfig -a -t vnode -o readonly -f /dist/uzip${UZIP_DIR}.uzip)
