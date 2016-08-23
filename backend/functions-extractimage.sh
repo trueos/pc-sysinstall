@@ -195,7 +195,10 @@ start_extract_uzip_tar()
       fi
       # Copying ifvbox to the drive.
       if [ "$INSTALLTYPE" = "GhostBSD" ] ; then
-        cp -vf /tmp/.ifvbox {FSMNT}/tmp/.ifvbox
+        cp -vf /tmp/.ifvbox ${FSMNT}/tmp/.ifvbox
+        if [ "$?" != "0" ] ; then
+          exit_err "ERROR: Failed to copy .ifvbox"
+        fi
       fi
       if [ "$?" != "0" ] ; then
         exit_err "ERROR: Failed to copy .ifvbox"
