@@ -94,12 +94,17 @@ do
   # Check for garbage that we can't sort
   echo $NEWLINE | sort >/dev/null 2>/dev/null
   if [ $? -ne 0 ] ; then
-     NEWLINE=" <Unknown Device>"
+     NEWLINE="<Unknown Device>"
   fi
 
   if [ -n "${FLAGS_MD}" ] && echo "${DEV}" | grep -E '^md[0-9]+' >/dev/null 2>/dev/null
   then
-	NEWLINE=" <Memory Disk>"
+	NEWLINE="Memory Disk"
+  fi
+
+  if echo "${DEV}" | grep -E '^nvd[0-9]+' >/dev/null 2>/dev/null
+  then
+	NEWLINE="NVMe Device"
   fi
 
   if [ -n "${FLAGS_VERBOSE}" ]
@@ -108,14 +113,32 @@ do
   fi
 
   # Save the disk list
-  if [ ! -z "$DLIST" ]
-  then
-    DLIST="\n${DLIST}"
-  fi
+  echo $DEV | grep -q "^da[0-9]"
+  if [ $? -ne 0 ] ; then
+    # Device other than USB
+    if [ -n "$DLIST" ]; then
+      DLIST="\n${DLIST}"
+    fi
+    DLIST="${DEV}:${NEWLINE}${DLIST}"
+  else
+    # USB Device, we list those last
 
-  DLIST="${DEV}:${NEWLINE}${DLIST}"
+    # First, lets make sure that this isn't install media
+    glabel status | grep "${DEV}p3" | grep -q "TRUEOS_INSTALL"
+    if [ $? -eq 0 ] ; then continue; fi
+
+    if [ -n "$USBLIST" ]; then
+      USBLIST="\n${USBLIST}"
+    fi
+    USBLIST="${DEV}:${NEWLINE}${USBLIST}"
+  fi
 
 done
 
 # Echo out the found line
-echo -e "$DLIST" | sort
+if [ -n "$DLIST" ] ; then
+  echo -e "$DLIST" | sort
+fi
+if [ -n "$USBLIST" ] ; then
+  echo -e "$USBLIST" | sort
+fi
