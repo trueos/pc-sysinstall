@@ -248,6 +248,11 @@ delete_all_gpart()
 
   # Destroy the disk geom
   rc_nohalt "gpart destroy -F ${DISK}"
+  rc_nohalt "zpool labelclear -f ${DISK}"
+
+  # Make double-sure
+  rc_halt "gpart create -s gpt ${DISK}"
+  rc_halt "gpart destroy -F ${DISK}"
 
   # Make sure we clear any hidden gpt tables
   clear_backup_gpt_table "${DISK}"
