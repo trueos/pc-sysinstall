@@ -65,7 +65,6 @@ unmount_upgrade()
      rc_halt "mount -t devfs devfs ${FSMNT}/dev"
      rc_halt "cp /root/beadm.install ${FSMNT}/root/beadm.install"
      rc_halt "chmod 755 ${FSMNT}/root/beadm.install"
-     rc_halt "chroot ${FSMNT} /root/beadm.install activate `basename ${BEDATASET}`"
 
      # Check if we need to restamp grub
      if [ -e "${TMPDIR}/GRUB-cfg.tar" ] ; then
@@ -77,9 +76,13 @@ unmount_upgrade()
        rc_halt "chroot ${FSMNT} grub-mkconfig -o /boot/grub/grub.cfg"
      fi
 
+     rc_halt "chroot ${FSMNT} /root/beadm.install activate `basename ${BEDATASET}`"
      rc_halt "rm ${FSMNT}/root/beadm.install"
      rc_halt "umount -f ${FSMNT}/dev"
   fi
+
+  # Copy zpool.cache
+  rc_halt "cp /boot/zfs/zpool.cache ${FSMNT}/boot/zfs/"
 
   # Unmount FS
   umount_all_dir "${FSMNT}"
