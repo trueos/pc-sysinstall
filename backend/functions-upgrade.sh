@@ -82,7 +82,9 @@ unmount_upgrade()
   fi
 
   # Copy zpool.cache
-  rc_halt "cp /boot/zfs/zpool.cache ${FSMNT}/boot/zfs/"
+  if [ -e "/boot/zfs/zpool.cache" ] ; then
+   rc_halt "cp /boot/zfs/zpool.cache ${FSMNT}/boot/zfs/"
+  fi
 
   # Unmount FS
   umount_all_dir "${FSMNT}"
