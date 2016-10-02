@@ -85,11 +85,11 @@ setup_zfs_filesystem()
   fi
 
   if [ -n "${ZPOOLOPTS}" ] ; then
-    echo_log "Creating zpool ${ZPOOLNAME} with $ZPOOLOPTS"
+    echo_log "Creating storage pool ${ZPOOLNAME} with $ZPOOLOPTS"
     rc_halt "zpool create -m none -f ${ZPOOLNAME} ${ZPOOLOPTS}"
   else
     # No zpool options, create pool on single device
-    echo_log "Creating zpool ${ZPOOLNAME} on ${PART}${EXT}"
+    echo_log "Creating storage pool ${ZPOOLNAME} on ${PART}${EXT}"
     rc_halt "zpool create -m none -f ${ZPOOLNAME} ${PART}${EXT}"
   fi
   return 0

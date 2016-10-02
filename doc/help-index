@@ -52,7 +52,7 @@ System Query Commands
         Returns a listing of available timezones
 
     list-zpools
-        Returns a listing of importable zpools
+        Returns a listing of importable ZFS storage pools
 
     query-langs 
         Return a list of languages that the installer supports
