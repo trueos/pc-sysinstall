@@ -248,6 +248,11 @@ delete_all_gpart()
 
   # Destroy the disk geom
   rc_nohalt "gpart destroy -F ${DISK}"
+  rc_nohalt "zpool labelclear -f ${DISK}"
+
+  # Make double-sure
+  rc_halt "gpart create -s gpt ${DISK}"
+  rc_halt "gpart destroy -F ${DISK}"
 
   # Make sure we clear any hidden gpt tables
   clear_backup_gpt_table "${DISK}"
@@ -688,7 +693,7 @@ init_gpt_full_disk()
   # Check the boot mode we are using {pc|efi}
   if [ "$BOOTMODE" = "UEFI" ]; then
     # Need to enable EFI booting, lets add the partition
-    rc_halt "gpart add -s 100M -t efi ${_intDISK}"
+    rc_halt "gpart add -a 4k -s 100M -t efi ${_intDISK}"
     rc_halt "newfs_msdos -F 16 ${_intDISK}p1"
     if [ -z "${EFI_POST_SETUP}" ] ; then
       EFI_POST_SETUP="${_intDISK}"
