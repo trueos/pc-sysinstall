@@ -47,10 +47,10 @@ zfs_cleanup_unmount()
         then
           # Make sure we haven't already added the zfs boot line when
           # Creating a dedicated "/boot" partition
-          #cat ${FSMNT}/boot/loader.conf 2>/dev/null | grep -q "vfs.root.mountfrom=" 2>/dev/null
-          #if [ $? -ne 0 ] ; then
-          #  echo "vfs.root.mountfrom=\"zfs:${ZPOOLNAME}/ROOT/${BENAME}\"" >> ${FSMNT}/boot/loader.conf
-          #fi
+          cat ${FSMNT}/boot/loader.conf 2>/dev/null | grep -q "vfs.root.mountfrom=" 2>/dev/null
+          if [ $? -ne 0 ] ; then
+            echo "vfs.root.mountfrom=\"zfs:${ZPOOLNAME}/ROOT/${BENAME}\"" >> ${FSMNT}/boot/loader.conf
+          fi
           export FOUNDZFSROOT="${ZPOOLNAME}"
         fi
       done
