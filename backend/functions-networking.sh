@@ -386,7 +386,7 @@ enable_manual_nic()
   # Set static IPv6 address
   get_value_from_cfg netIPv6
   NETIP="${VAL}"
-  if [ -n ${NETIP} ]
+  if [ -n "${NETIP}" ]
   then
       rc_halt "ifconfig inet6 ${NIC} ${NETIP} -ifdisabled up"
   fi
