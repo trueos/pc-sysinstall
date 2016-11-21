@@ -449,6 +449,8 @@ restore_zfs_from_local()
     if [ $? -eq 0 -a "$prop" = "mountpoint" ] ; then continue; fi
 
     # Set new property
+    echo "Setting prop: $dSet $prop = $val"
+
     rc_halt "zfs set ${prop}=${val} ${dSet}"
   done < ${TMPDIR}/.zprops
   rm ${TMPDIR}/.zprops
