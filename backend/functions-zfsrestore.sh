@@ -236,10 +236,10 @@ connect_iscsi()
   if [ "$startSt" != "1" ] ; then
     # Create the config
     echo "client = yes
-    foreground = yes
-    [iscsi]
-    accept=127.0.0.1:3260
-    connect = $REPHOST:$REPPORT" > ${STCFG}
+foreground = yes
+[iscsi]
+accept=127.0.0.1:3260
+connect = $REPHOST:$REPPORT" > ${STCFG}
     cat ${STCFG} >>${LOGOUT}
     # Start the client
     ( stunnel ${STCFG} >/dev/null 2>/dev/null )&
