@@ -173,12 +173,12 @@ setup_users()
         then
           ARGS="${ARGS} -c \"${USERCOMMENT}\""
         fi
-         
+
         if [ -n "${USERPASS}" ]
         then
           ARGS="${ARGS} -h 0"
           echo "${USERPASS}" >${FSMNT}/.tmpPass
-	elif [ -n "${USERENCPASS}" ] 
+	elif [ -n "${USERENCPASS}" ]
 	then
           ARGS="${ARGS} -H 0"
           echo "${USERENCPASS}" >${FSMNT}/.tmpPass
@@ -193,13 +193,13 @@ setup_users()
         else
           ARGS="${ARGS} -s \"/nonexistant\""
         fi
-         
+
         if [ -n "${USERHOME}" ]
         then
           ARGS="${ARGS} -m -d \"${USERHOME}\""
         fi
 
-	if [ -n "${DEFAULTGROUP}" ]
+        if [ -n "${DEFAULTGROUP}" ]
         then
             ARGS="${ARGS} -g \"${DEFAULTGROUP}\""
         fi
@@ -209,18 +209,18 @@ setup_users()
           ARGS="${ARGS} -G \"${USERGROUPS}\""
         fi
         add_user "${ARGS}"
-	if [ -f ${FSMNT}/usr/local/etc/slim.conf ] ; then
-	  echo "exec $1" > ${FSMNT}/usr/home/${USERHOME}/.xinitrc
-	fi
+        if [ -f "${FSMNT}/usr/local/etc/slim.conf" ] ; then
+          echo "exec $1" > ${FSMNT}${USERHOME}/.xinitrc
+        fi
         # Unset our vars before looking for any more users
         unset USERNAME USERCOMMENT USERPASS USERENCPASS USERSHELL USERHOME DEFAULTGROUP USERGROUPS
       else
-        exit_err "ERROR: commitUser was called without any userName= entry!!!" 
+        exit_err "ERROR: commitUser was called without any userName= entry!!!"
       fi
     fi
 
   done <${CFGF}
-  
+
   # Check if we need to enable a user to auto-login to the desktop
   check_autologin
 
