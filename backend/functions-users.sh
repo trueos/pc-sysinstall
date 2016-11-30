@@ -75,22 +75,10 @@ add_user()
 
  if [ -e "${FSMNT}/.tmpPass" ]
  then
-   # If it is GhostBSD remove the ghostbsd live user.
-   if [ "${INSTALLTYPE}" = "GhostBSD" ]
-   then
-     run_chroot_cmd "pw userdel -n ghostbsd"
-     run_chroot_cmd "rm -rf /home/ghostbsd"
-   fi
    # Add a user with a supplied password
    run_chroot_cmd "cat /.tmpPass | pw useradd ${ARGS}"
    rc_halt "rm ${FSMNT}/.tmpPass"
  else
-   # If it is GhostBSD remove the ghostbsd live user.
-   if [ "${INSTALLTYPE}" = "GhostBSD" ]
-   then
-     run_chroot_cmd "pw userdel -n ghostbsd"
-     run_chroot_cmd "rm -rf /home/ghostbsd"
-   fi
    # Add a user with no password
    run_chroot_cmd "cat /.tmpPass | pw useradd ${ARGS}"
  fi
@@ -220,9 +208,10 @@ setup_users()
         then
           ARGS="${ARGS} -G \"${USERGROUPS}\""
         fi
-
         add_user "${ARGS}"
-
+	if [ -f ${FSMNT}/usr/local/etc/slim.conf ] ; then
+	  echo "exec $1" > ${FSMNT}/usr/home/${USERHOME}/.xinitrc
+	fi
         # Unset our vars before looking for any more users
         unset USERNAME USERCOMMENT USERPASS USERENCPASS USERSHELL USERHOME DEFAULTGROUP USERGROUPS
       else
