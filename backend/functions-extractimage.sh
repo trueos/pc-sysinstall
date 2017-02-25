@@ -64,6 +64,9 @@ start_extract_pkg()
     fi
   done
 
+  # Don't allow any of the FreeBSD packages to be auto-removed
+  pkg -c ${FSMNT} set -y -A 00 -g FreeBSD-\*
+
   # Unmount packages
   rc_halt "umount -f ${FSMNT}/packages"
 
