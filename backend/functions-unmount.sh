@@ -336,7 +336,17 @@ setup_efi_boot()
 
     # Copy the .efi file
     rc_nohalt "mkdir -p ${FSMNT}/boot/efi/efi/boot"
-    rc_halt "cp ${FSMNT}/boot/boot1.efi ${FSMNT}/boot/efi/efi/boot/BOOTx64.efi"
+
+    if [ -d '/root/refind' ] ; then
+      # We have refind on the install media, lets use that for dual-boot purposes
+      rc_halt "cp /root/refind/refind_x64.efi ${FSMNT}/boot/efi/efi/boot/BOOTx64.efi"
+      rc_halt "cp /root/refind/refind.conf ${FSMNT}/boot/efi/efi/boot/refind.conf"
+      rc_halt "cp -r /root/refind/icons ${FSMNT}/boot/efi/efi/boot/icons"
+      rc_halt "cp ${FSMNT}/boot/boot1.efi ${FSMNT}/boot/efi/efi/boot/bootx64-trueos.efi"
+    else
+      # BSD Loader only
+      rc_halt "cp ${FSMNT}/boot/boot1.efi ${FSMNT}/boot/efi/efi/boot/BOOTx64.efi"
+    fi
 
     # Cleanup
     rc_halt "umount ${FSMNT}/boot/efi"
