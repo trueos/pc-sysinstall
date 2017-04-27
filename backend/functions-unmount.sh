@@ -337,7 +337,12 @@ setup_efi_boot()
     # Copy the .efi file
     rc_nohalt "mkdir -p ${FSMNT}/boot/efi/efi/boot"
 
-    if [ -d '/root/refind' ] ; then
+    # Check if efiLoader is specified
+    get_value_from_cfg efiLoader
+    EFILOADER="${VAL}"
+    if [ -z "$EFILOADER" ] ; then EFILOADER="refind" ; fi
+
+    if [ -d '/root/refind' -a "$EFILOADER" = "refind" ] ; then
       # We have refind on the install media, lets use that for dual-boot purposes
       rc_halt "cp /root/refind/refind_x64.efi ${FSMNT}/boot/efi/efi/boot/BOOTx64.efi"
       rc_halt "cp /root/refind/refind.conf ${FSMNT}/boot/efi/efi/boot/refind.conf"
