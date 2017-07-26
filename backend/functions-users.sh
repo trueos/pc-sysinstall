@@ -210,7 +210,7 @@ setup_users()
         fi
         add_user "${ARGS}"
         if [ -f "${FSMNT}/usr/local/etc/slim.conf" ] ; then
-          echo "exec $1" > ${FSMNT}${USERHOME}/.xinitrc
+          echo 'exec $1' > ${FSMNT}${USERHOME}/.xinitrc
         fi
         # Unset our vars before looking for any more users
         unset USERNAME USERCOMMENT USERPASS USERENCPASS USERSHELL USERHOME DEFAULTGROUP USERGROUPS
