@@ -177,6 +177,19 @@ localize_x_keyboard()
     fi
   fi
 
+  # For GhostBSD XFCE4 
+  if [ "${KEYVAR}" == "NONE" ] ; then
+    if [ -f ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml ] ; then
+        sed -i '' "s/value="\""us"\""/value="\""${KXLAYOUT}"\""/g" ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml
+    fi
+  else
+    if [ -f ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml ] ; then
+        sed -i '' "s/value="\""us"\""/value="\""${KXLAYOUT}"\""/g" ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml
+        sed -i '' "s/value="\"""\""/value="\""${KEYVAR}"\""/g" ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml
+    fi
+  fi
+
+
   # Create the kxkbrc configuration using these options
   if [ -d "${FSMNT}/usr/share/skel/.kde4/share/config" ] ; then
     echo "[Layout]
