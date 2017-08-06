@@ -177,15 +177,15 @@ localize_x_keyboard()
     fi
   fi
 
-  # For GhostBSD XFCE4 
+  # For GhostBSD XFCE4
   if [ "${KEYVAR}" == "NONE" ] ; then
-    if [ -f ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml ] ; then
-        sed -i '' "s/value="\""us"\""/value="\""${KXLAYOUT}"\""/g" ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml
-    fi
+    if [ -f ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboard-layout.xml ] ; then
+        sed -i '' "s/value="\""us"\""/value="\""${KXLAYOUT}"\""/g" ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboard-layout.xml
+      fi
   else
-    if [ -f ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml ] ; then
-        sed -i '' "s/value="\""us"\""/value="\""${KXLAYOUT}"\""/g" ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml
-        sed -i '' "s/value="\"""\""/value="\""${KEYVAR}"\""/g" ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml
+    if [ -f ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboard-layout.xml ] ; then
+        sed -i '' "s/value="\""us"\""/value="\""${KXLAYOUT}"\""/g" ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboard-layout.xml
+        sed -i '' "s/value="\"""\""/value="\""${KEYVAR}"\""/g" ${FSMNT}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/keyboard-layout.xml
     fi
   fi
 
