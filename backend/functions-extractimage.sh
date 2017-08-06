@@ -195,13 +195,12 @@ start_extract_uzip_tar()
       fi
       # Copying ifvbox to the drive.
       if [ "$INSTALLTYPE" = "GhostBSD" ] ; then
-        cp -vf /tmp/.ifvbox ${FSMNT}/tmp/.ifvbox
+        pciconf -lv | grep -q VirtualBox
         if [ "$?" != "0" ] ; then
-          exit_err "ERROR: Failed to copy .ifvbox"
+          echo "true" > ${FSMNT}/tmp/.ifvbox
+        else
+          echo "false" > ${FSMNT}/tmp/.ifvbox
         fi
-      fi
-      if [ "$?" != "0" ] ; then
-        exit_err "ERROR: Failed to copy .ifvbox"
       fi
 
       DEVICE=$(mdconfig -a -t vnode -o readonly -f /dist/uzip${UZIP_DIR}.uzip)
