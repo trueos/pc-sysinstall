@@ -129,7 +129,8 @@ setup_filesystems()
     fi
 
     # Setup encryption if necessary
-    if [ "${PARTENC}" = "ON" -a "${PARTFS}" != "SWAP" ]
+    #if [ "${PARTENC}" = "ON" -a "${PARTFS}" != "SWAP" ]
+    if [ "${PARTENC}" = "ON" ]
     then
       echo_log "Creating geli provider for ${PARTDEV}"
 
