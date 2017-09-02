@@ -69,12 +69,12 @@ setup_zfs_filesystem()
       if [ "$HAVEBOOT" = "YES" ] ; then continue ; fi
       if [ "${PARTGEOM}" = "MBR" ] ; then
         # Lets stamp the proper ZFS boot loader
-        echo_log "Setting up ZFS boot loader support" 
+        echo_log "Setting up ZFS boot loader support"
         rc_halt "dd if=/boot/zfsboot of=${ROOTSLICE} count=1"
         rc_halt "dd if=/boot/zfsboot of=${PART}${EXT} skip=1 seek=1024"
       fi
     fi
-  done 
+  done
 
   # Get the default zpool flags
   get_zpool_flags
@@ -119,7 +119,7 @@ setup_filesystems()
 
     if [ ! -e "${PARTDEV}" ] ; then
       exit_err "ERROR: The partition ${PARTDEV} does not exist. Failure in bsdlabel?"
-    fi 
+    fi
 
     # Make sure journaling isn't enabled on this device
     if [ -e "${PARTDEV}.journal" ]
@@ -129,8 +129,7 @@ setup_filesystems()
     fi
 
     # Setup encryption if necessary
-    #if [ "${PARTENC}" = "ON" -a "${PARTFS}" != "SWAP" ]
-    if [ "${PARTENC}" = "ON" ]
+    if [ "${PARTENC}" = "ON" -a "${PARTFS}" != "SWAP" ]
     then
       echo_log "Creating geli provider for ${PARTDEV}"
 
@@ -234,7 +233,7 @@ setup_filesystems()
         ;;
 
       ZFS)
-        echo_log "NEWFS: ${PARTDEV} - ${PARTFS}" 
+        echo_log "NEWFS: ${PARTDEV} - ${PARTFS}"
         setup_zfs_filesystem "${PARTDEV}" "${PARTFS}" "${PARTMNT}" "${EXT}" "${PARTGEOM}" "${PARTXTRAOPTS}"
         ;;
 
@@ -243,9 +242,9 @@ setup_filesystems()
 	if [ -n "$ZFS_SWAP_DEVS" ] ; then
 	  setup_gmirror_swap "$ZFS_SWAP_DEVS"
 	  sleep 5
-          rc_halt "glabel label ${PARTLABEL} /dev/mirror/swapmirror" 
+          rc_halt "glabel label ${PARTLABEL} /dev/mirror/swapmirror"
         else
-          rc_halt "glabel label ${PARTLABEL} ${PARTDEV}${EXT}" 
+          rc_halt "glabel label ${PARTLABEL} ${PARTDEV}${EXT}"
         fi
         rc_halt "sync"
         sleep 2
@@ -254,7 +253,7 @@ setup_filesystems()
       IMAGE)
         write_image "${PARTIMAGE}" "${PARTDEV}"
         sleep 2
-        ;; 
+        ;;
 
       *) exit_err "ERROR: Got unknown file-system type $PARTFS" ;;
     esac
