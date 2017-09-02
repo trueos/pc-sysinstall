@@ -70,6 +70,14 @@ get_first_wired_nic()
 # Function which simply enables plain dhcp on all detected nics
 enable_dhcp_all()
 {
+  local dFlags=""
+  case $1 in
+    IPv4) dFlags="DHCP" ;;
+    IPv6) dFlags="IPV6" ;;
+    ALL) dFlags="ALL" ;;
+      *) dFlags="DHCP" ;;
+  esac
+
   rm ${TMPDIR}/.niclist >/dev/null 2>/dev/null
   # start by getting a list of nics on this system
   ${QUERYDIR}/detect-nics.sh > ${TMPDIR}/.niclist
@@ -81,7 +89,7 @@ enable_dhcp_all()
       NIC="`echo $line | cut -d ':' -f 1`"
       DESC="`echo $line | cut -d ':' -f 2`"
       echo_log "Setting $NIC to DHCP on the system."
-      echo "ifconfig_${NIC}=\"DHCP\"" >>${FSMNT}/etc/rc.conf
+      echo "ifconfig_${NIC}=\"${dFlags}\"" >>${FSMNT}/etc/rc.conf
       CNIC="${NIC}"
     done < ${TMPDIR}/.niclist 
   fi
@@ -96,7 +104,7 @@ enable_dhcp_all()
     if [ $? -ne 0 ] ; then
       echo "wlans_${wnic}=\"${WLAN}\"" >>${FSMNT}/etc/rc.conf
     fi
-    echo "ifconfig_${WLAN}=\"WPA SYNCDHCP\"" >>${FSMNT}/etc/rc.conf
+    echo "ifconfig_${WLAN}=\"WPA ${dFlags}\"" >>${FSMNT}/etc/rc.conf
     CNIC="${WLAN}"
     WLANCOUNT=$((WLANCOUNT+1))
   done
@@ -106,7 +114,7 @@ enable_dhcp_all()
 # Function which detects available nics, and enables dhcp on them
 save_auto_dhcp()
 {
-  enable_dhcp_all
+  enable_dhcp_all "$1"
 };
 
 # Function which simply enables iPv6 SLAAC on all detected nics
@@ -386,7 +394,7 @@ enable_manual_nic()
   # Set static IPv6 address
   get_value_from_cfg netIPv6
   NETIP="${VAL}"
-  if [ -n ${NETIP} ]
+  if [ -n "${NETIP}" ]
   then
       rc_halt "ifconfig inet6 ${NIC} ${NETIP} -ifdisabled up"
   fi
@@ -460,14 +468,13 @@ save_networking_install()
   NETDEVLIST="${VAL}"
   if [ "$NETDEVLIST" = "AUTO-DHCP" ]
   then
-    save_auto_dhcp
+    save_auto_dhcp "IPv4"
   elif [ "$NETDEVLIST" = "IPv6-SLAAC" ]
   then
-    save_auto_slaac
+    save_auto_dhcp "IPv6"
   elif [ "$NETDEVLIST" = "AUTO-DHCP-SLAAC" ]
   then
-    save_auto_dhcp
-    save_auto_slaac
+    save_auto_dhcp "ALL"
   else
     for NETDEV in ${NETDEVLIST}
     do

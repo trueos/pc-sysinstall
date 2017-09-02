@@ -58,11 +58,14 @@ start_extract_pkg()
   do
     inspkg=$(basename $pkg)
     echo_log "pkg -c ${FSMNT} add /packages/All/$inspkg"
-    pkg -c ${FSMNT} add -f /packages/All/$inspkg
+    env ASSUME_ALWAYS_YES=YES pkg -c ${FSMNT} add -f /packages/All/$inspkg
     if [ $? -ne 0 ] ; then
       exit_err "Failed installing $inspkg!"
     fi
   done
+
+  # Don't allow any of the FreeBSD packages to be auto-removed
+  pkg -c ${FSMNT} set -y -A 00 -g FreeBSD-\*
 
   # Unmount packages
   rc_halt "umount -f ${FSMNT}/packages"
@@ -206,9 +209,9 @@ start_extract_uzip_tar()
       DEVICE=$(mdconfig -a -t vnode -o readonly -f /dist/uzip${UZIP_DIR}.uzip)
       mkdir -p  ${CDMNT}${UZIP_DIR}
       mount -o ro /dev/${DEVICE}.uzip ${CDMNT}${UZIP_DIR}
-
-      rsync -avH --exclude 'media/*' --exclude 'proc/*' --exclude 'mnt/*' --exclude 'dist/*' --exclude 'cdmnt-install' ${CDMNT}${UZIP_DIR} ${FSMNT}/
       chmod 755 ${FSMNT}/
+
+      rsync -avH --exclude 'media/*' --exclude 'proc/*' --exclude 'mnt/*' --exclude 'tmp/*' --exclude 'dist/*' --exclude 'gbi' --exclude 'cdmnt-install' ${CDMNT}${UZIP_DIR} ${FSMNT}/
       if [ "$?" != "0" ]
       then
         umount -f ${CDMNT}${UZIP_DIR}
