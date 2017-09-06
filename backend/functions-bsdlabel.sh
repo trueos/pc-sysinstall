@@ -554,12 +554,7 @@ new_gpart_partitions()
       # Create the partition
       if [ "${_pType}" = "gpt" ] ; then
         sleep 2
-        if [ "${INSTALLTYPE}" = "GhostBSD" ]
-        then
-          aCmd="gpart add ${SOUT} -t ${PARTYPE} ${_pDisk}"
-        else
 	  aCmd="gpart add -a 4k ${SOUT} -t ${PARTYPE} ${_pDisk}"
-	fi
       elif [ "${_pType}" = "gptslice" ]; then
         sleep 2
         aCmd="gpart add ${SOUT} -t ${PARTYPE} ${_wSlice}"
@@ -569,7 +564,10 @@ new_gpart_partitions()
       else
         sleep 2
 	# MBR type
-	if [ "$PARTLETTER" = "a" ] ; then
+	if [ "${INSTALLTYPE}" = "GhostBSD" ] ; then
+	  # From research the first label be aligned with the disk  
+	  aCmd="gpart add -a 4k ${SOUT} -t ${PARTYPE} ${_wSlice}"
+	elif [ "$PARTLETTER" = "a" ] ; then
           # The BOOT/ROOT partition must NOT be aligned
           aCmd="gpart add ${SOUT} -t ${PARTYPE} ${_wSlice}"
 	else

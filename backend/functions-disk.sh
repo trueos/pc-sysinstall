@@ -736,7 +736,11 @@ init_mbr_full_disk()
 
   # Install new partition setup
   echo_log "Running gpart add on ${_intDISK}"
-  rc_halt "gpart add -b 2048 -a 4k -t freebsd -i 1 ${_intDISK}"
+  if [ "${INSTALLTYPE}" = "GhostBSD" ] ; then 
+    rc_halt "gpart add -a 4k -t freebsd -i 1 ${_intDISK}"
+  else
+    rc_halt "gpart add -b 2048 -a 4k -t freebsd -i 1 ${_intDISK}"
+  fi
   sleep 2
   
   # Make the partition active
