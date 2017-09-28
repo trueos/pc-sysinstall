@@ -36,7 +36,7 @@ umount_all_dir()
   do
     echo_log "Unmounting: ${_ud}"
     sleep 2
-    umount -f ${_ud} 
+    umount -f ${_ud}
   done
 }
 
@@ -50,7 +50,7 @@ start_gmirror_sync()
     MIRRORDISK="`cat ${DISK} | cut -d ':' -f 1`"
     MIRRORBAL="`cat ${DISK} | cut -d ':' -f 2`"
     MIRRORNAME="`cat ${DISK} | cut -d ':' -f 3`"
-   
+
     # Start the mirroring service
     rc_nohalt "gmirror forget ${MIRRORNAME}"
     rc_halt "gmirror insert ${MIRRORNAME} ${MIRRORDISK}"
@@ -77,7 +77,7 @@ unmount_all_filesystems()
   ##################################################################
   for PART in `ls ${PARTDIR}`
   do
-    PARTDEV=`echo $PART | sed 's|-|/|g'`    
+    PARTDEV=`echo $PART | sed 's|-|/|g'`
     PARTFS="`cat ${PARTDIR}/${PART} | cut -d '#' -f 1`"
     PARTMNT="`cat ${PARTDIR}/${PART} | cut -d '#' -f 2`"
     PARTENC="`cat ${PARTDIR}/${PART} | cut -d '#' -f 3`"
@@ -110,7 +110,7 @@ unmount_all_filesystems()
           UFS+SUJ) glabel label ${PARTLABEL} ${PARTDEV}${EXT} ;;
           UFS+J) glabel label ${PARTLABEL} ${PARTDEV}${EXT}.journal ;;
           *) ;;
-        esac 
+        esac
       fi
     fi
 
@@ -125,7 +125,7 @@ unmount_all_filesystems()
           UFS+SUJ) ROOTRELABEL="glabel label ${PARTLABEL} ${PARTDEV}${EXT}" ;;
           UFS+J) ROOTRELABEL="glabel label ${PARTLABEL} ${PARTDEV}${EXT}.journal" ;;
           *) ;;
-        esac 
+        esac
       fi
     fi
   done
@@ -179,7 +179,7 @@ unmount_all_filesystems_failure()
   ##################################################################
   for PART in `ls ${PARTDIR}`
   do
-    PARTDEV=`echo $PART | sed 's|-|/|g'`    
+    PARTDEV=`echo $PART | sed 's|-|/|g'`
     PARTFS="`cat ${PARTDIR}/${PART} | cut -d '#' -f 1`"
     PARTMNT="`cat ${PARTDIR}/${PART} | cut -d '#' -f 2`"
     PARTENC="`cat ${PARTDIR}/${PART} | cut -d '#' -f 3`"
@@ -222,7 +222,7 @@ unmount_all_filesystems_failure()
 };
 
 # Script which stamps grub on the specified disks
-setup_grub() 
+setup_grub()
 {
   # Check for a custom beadm.install to copy before we run grub
   if [ -e "/root/beadm.install" ] ; then
@@ -366,11 +366,6 @@ post_install_boot_setup()
   # Make sure to copy zpool.cache first
   if [ ! -d "${FSMNT}/boot/zfs/" ] ; then
      rc_halt "mkdir ${FSMNT}/boot/zfs"
-  fi
-
-  # GhostBSD doesn't use ZFS.
-  if [ -e "/boot/zfs/zpool.cache" ] ; then
-    rc_halt "cp /boot/zfs/zpool.cache ${FSMNT}/boot/zfs/"
   fi
 
   if [ ! -e "${FSMNT}/boot/kernel/zfs" ] ; then
