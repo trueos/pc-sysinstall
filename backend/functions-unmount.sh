@@ -358,17 +358,21 @@ post_install_boot_setup()
   # Mount devfs
   rc_halt "mount -t devfs devfs ${FSMNT}/dev"
 
-  # Make sure to copy zpool.cache first
-  if [ ! -d "${FSMNT}/boot/zfs/" ] ; then
+  # Verify that we are installing ZFS
+  grep -Rq 'ZFS' ${PARTDIR}
+  if [ $? -eq 0 ] ; then
+    # Make sure to copy zpool.cache first
+    if [ ! -d "${FSMNT}/boot/zfs/" ] ; then
      rc_halt "mkdir ${FSMNT}/boot/zfs"
-  fi
+    fi
 
-  if [ ! -e "${FSMNT}/boot/kernel/zfs" ] ; then
-    rc_halt "ln -s ../zfs ${FSMNT}/boot/kernel/zfs"
-  fi
+    if [ ! -e "${FSMNT}/boot/kernel/zfs" ] ; then
+      rc_halt "ln -s ../zfs ${FSMNT}/boot/kernel/zfs"
+    fi
 
-  # Copy the hostid so that our zfs cache works
-  rc_nohalt "cp /etc/hostid ${FSMNT}/etc/hostid"
+    # Copy the hostid so that our zfs cache works
+    rc_nohalt "cp /etc/hostid ${FSMNT}/etc/hostid"
+  fi
 
   # Check if we need to setup GRUB
   if [ -e "${TMPDIR}/.grub-install" ] ; then
