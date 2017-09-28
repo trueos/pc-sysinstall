@@ -366,6 +366,11 @@ post_install_boot_setup()
      rc_halt "mkdir ${FSMNT}/boot/zfs"
     fi
 
+    # Make sure that chach is created for ZFS.
+    if [ -e "/boot/zfs/zpool.cache" ] ; then
+      rc_halt "cp /boot/zfs/zpool.cache ${FSMNT}/boot/zfs/"
+    fi
+
     if [ ! -e "${FSMNT}/boot/kernel/zfs" ] ; then
       rc_halt "ln -s ../zfs ${FSMNT}/boot/kernel/zfs"
     fi
