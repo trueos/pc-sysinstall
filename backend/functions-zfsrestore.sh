@@ -83,22 +83,22 @@ load_ssh_settings()
   SSHKEY="$VAL"
 
   if [ -z "$SSHHOST" ] ; then
-     exit_err "Missing sshHost!"
+    exit_err "Missing sshHost!"
   fi
   if [ -z "$SSHUSER" ] ; then
-     exit_err "Missing sshUser!"
+    exit_err "Missing sshUser!"
   fi
   if [ -z "$SSHPORT" ] ; then
-     SSHPORT="22"
+    SSHPORT="22"
   fi
   if [ -n "$SSHKEY" ] ; then
-     SSHKEY="-i $SSHKEY"
+    SSHKEY="-i $SSHKEY"
   fi
 
   # Now that the settings are loaded, lets test this connection
   ssh -o NumberOfPasswordPrompts=0 $SSHKEY -p $SSHPORT ${SSHUSER}@${SSHHOST} "echo ''"
   if [ $? -ne 0 ] ; then
-     exit_err "Failed SSH connection to ${SSHHOST}"
+    exit_err "Failed SSH connection to ${SSHHOST}"
   fi
 
   export SSHKEY SSHPORT SSHUSER SSHHOST
@@ -109,7 +109,7 @@ restore_zfs_from_remote()
   get_value_from_cfg zfsProps
   ZFSPROPS="$VAL"
   if [ -z "$ZFSPROPS" ] ; then
-     exit_err "No zfsProps= specified!"
+    exit_err "No zfsProps= specified!"
   fi
 
   ZPFILE="${TMPDIR}/.zfs-restore-props"
@@ -118,8 +118,8 @@ restore_zfs_from_remote()
   echo "ssh -p ${SSHPORT} ${SSHKEY} ${SSHUSER}@${SSHHOST} \"cat '$ZFSPROPS'\" > ${ZPFILE}" > ${TMPDIR}/.fetchProp
   sh ${TMPDIR}/.fetchProp
   if [ $? -ne 0 ] ; then
-     rm ${TMPDIR}/.fetchProp
-     exit_err "Unable to get ZFS properties file!"
+    rm ${TMPDIR}/.fetchProp
+    exit_err "Unable to get ZFS properties file!"
   fi
   rm ${TMPDIR}/.fetchProp
 
@@ -130,13 +130,13 @@ restore_zfs_from_remote()
 
   echo "lastSnap: $lastSNAP"
   sleep 5
-   
+
   # Lets start pulling our ZFS replication
   zSEND="ssh -p $SSHPORT ${SSHKEY} ${SSHUSER}@${SSHHOST} zfs send -Rv ${ZFSDATASET}@${lastSNAP}"
   zRECV="zfs receive -evuF ${ZPOOLNAME}"
   $zSEND | $zRECV >/dev/null 2>/dev/null
   if [ $? -ne 0 ] ; then
-     exit_err "Failed ZFS send / receive"
+    exit_err "Failed ZFS send / receive"
   fi
 
   # OK, with all the ZFS datasets received, we can now rename
@@ -178,37 +178,37 @@ restore_zfs_from_remote()
   # Now lets read in our ZFS properties and reset them
   while read zLine
   do
-      dSet="`echo $zLine | awk '{print $1}' | cut -d '@' -f 2- | cut -d '/' -f 2-`"
-      prop="`echo $zLine | awk '{print $2}'`"
-      val="`echo $zLine | awk '{print $3}'`"
-      dChk="`echo $zLine | awk '{print $1}'`"
+    dSet="`echo $zLine | awk '{print $1}' | cut -d '@' -f 2- | cut -d '/' -f 2-`"
+    prop="`echo $zLine | awk '{print $2}'`"
+    val="`echo $zLine | awk '{print $3}'`"
+    dChk="`echo $zLine | awk '{print $1}'`"
 
-      # Remove header
-      echo "$zLine" | grep -q PROPERTY
-      if [ $? -eq 0 ] ; then continue ; fi
+    # Remove header
+    echo "$zLine" | grep -q PROPERTY
+    if [ $? -eq 0 ] ; then continue ; fi
 
-      # Don't need to set empty props
-      if [ -z "$val" ] ; then continue ; fi
+    # Don't need to set empty props
+    if [ -z "$val" ] ; then continue ; fi
 
-      # We can skip setting mountpoint on BEs
-      echo $dSet | grep -q '^ROOT/'
-      if [ $? -eq 0 -a "$prop" = "mountpoint" ] ; then continue; fi
+    # We can skip setting mountpoint on BEs
+    echo $dSet | grep -q '^ROOT/'
+    if [ $? -eq 0 -a "$prop" = "mountpoint" ] ; then continue; fi
 
-      echo "$dChk" | grep -q '@'
-      if [ $? -eq 0 ] ; then
-        rc_halt "zfs set ${prop}=${val} ${ZPOOLNAME}@${dSet}"
-        continue 
-      fi
-      echo "$dChk" | grep -q '/'
-      if [ $? -eq 0 ] ; then
-        rc_halt "zfs set ${prop}=${val} ${ZPOOLNAME}/${dSet}"
-        continue 
-      fi
-      if [ "$dSet" = "$dChk" ] ; then
-        if [ "$prop" = "mountpoint" ] ; then continue; fi
-        rc_halt "zfs set ${prop}=${val} ${ZPOOLNAME}"
-        continue 
-      fi
+    echo "$dChk" | grep -q '@'
+    if [ $? -eq 0 ] ; then
+      rc_halt "zfs set ${prop}=${val} ${ZPOOLNAME}@${dSet}"
+      continue 
+    fi
+    echo "$dChk" | grep -q '/'
+    if [ $? -eq 0 ] ; then
+      rc_halt "zfs set ${prop}=${val} ${ZPOOLNAME}/${dSet}"
+      continue 
+    fi
+    if [ "$dSet" = "$dChk" ] ; then
+      if [ "$prop" = "mountpoint" ] ; then continue; fi
+      rc_halt "zfs set ${prop}=${val} ${ZPOOLNAME}"
+      continue 
+    fi
   done < ${ZPFILE}
 
   # Lastly, lets set bootfs
@@ -218,7 +218,7 @@ restore_zfs_from_remote()
 
 restore_umount_zfs()
 {
-   umount_all_dir "${FSMNT}"
+  umount_all_dir "${FSMNT}"
 }
 
 connect_iscsi()
@@ -228,32 +228,32 @@ connect_iscsi()
   export STCFG="${TMPDIR}/.stcfg-restore"
   startSt=0;
   if [ -e "${spidFile}" ] ; then
-     pgrep -F ${spidFile} >/dev/null 2>/dev/null
-     if [ $? -eq 0 ] ; then startSt=1; fi
+    pgrep -F ${spidFile} >/dev/null 2>/dev/null
+    if [ $? -eq 0 ] ; then startSt=1; fi
   fi
 
   # Time to start stunnel
   if [ "$startSt" != "1" ] ; then
-     # Create the config
-     echo "client = yes
+    # Create the config
+    echo "client = yes
 foreground = yes
 [iscsi]
 accept=127.0.0.1:3260
 connect = $REPHOST:$REPPORT" > ${STCFG}
-     cat ${STCFG} >>${LOGOUT}
-     # Start the client
-     ( stunnel ${STCFG} >/dev/null 2>/dev/null )&
-     echo "$!" > $spidFile
-     sleep 1
+    cat ${STCFG} >>${LOGOUT}
+    # Start the client
+    ( stunnel ${STCFG} >/dev/null 2>/dev/null )&
+    echo "$!" > $spidFile
+    sleep 1
   fi
 
   # Check if ISCSI is already init'd
   diskName=`iscsictl | grep "^${REPINAME}:${REPTARGET} " | grep "Connected:" | awk '{print $4}'`
   if [ -z "$diskName" ] ; then
-     # Connect the ISCSI session
-     echo "iscsictl -A -p 127.0.0.1 -t ${REPINAME}:$REPTARGET -u $REPUSER -s $REPPASS" >>${LOGOUT}
-     iscsictl -A -p 127.0.0.1 -t ${REPINAME}:$REPTARGET -u $REPUSER -s $REPPASS >>${LOGOUT} 2>>${LOGOUT}
-     if [ $? -ne 0 ] ; then return 1; fi
+    # Connect the ISCSI session
+    echo "iscsictl -A -p 127.0.0.1 -t ${REPINAME}:$REPTARGET -u $REPUSER -s $REPPASS" >>${LOGOUT}
+    iscsictl -A -p 127.0.0.1 -t ${REPINAME}:$REPTARGET -u $REPUSER -s $REPPASS >>${LOGOUT} 2>>${LOGOUT}
+    if [ $? -ne 0 ] ; then return 1; fi
   fi
 
   # Now lets wait a reasonable ammount of time to see if iscsi becomes available
@@ -333,8 +333,8 @@ load_zpool_from_iscsi_file() {
   echo "Creating GELI provider..."
   cat ${ISCSIPASS} | geli attach -j - ${MD} >/dev/null 2>/dev/null
   if [ $? -ne 0 ] ; then
-     mdconfig -d -u $MD
-     exit_err "Failed GELI attach"
+    mdconfig -d -u $MD
+    exit_err "Failed GELI attach"
   fi
   rm ${ISCSIPASS}
 
@@ -383,13 +383,13 @@ restore_zfs_from_local()
 
   echo "lastSnap: $lastSNAP"
   sleep 5
-   
+
   # Lets start pulling our ZFS replication
   zSEND="zfs send -Rv ${ZFSDATASET}@${lastSNAP}"
   zRECV="zfs receive -evuF ${ZPOOLNAME}"
   $zSEND | $zRECV >/dev/null 2>/dev/null
   if [ $? -ne 0 ] ; then
-     exit_err "Failed ZFS send / receive"
+    exit_err "Failed ZFS send / receive"
   fi
 
   # OK, with all the ZFS datasets received, we can now rename
@@ -428,39 +428,30 @@ restore_zfs_from_local()
 
   # Lets get the list of properties to set
   zfs get -r -s local -o name,property,value all ${ZPOOLNAME} | grep lifepreserver-prop: > ${TMPDIR}/.zprops
-
+  zfs get -r -s received -o name,property,value all ${ZPOOLNAME} | grep lifepreserver-prop: >> ${TMPDIR}/.zprops
   echo_log "Setting ZFS dataset properties.."
   # Now lets read in our ZFS properties and reset them
   while read zLine
   do
-      dSet="`echo $zLine | awk '{print $1}'`"
-      prop="`echo $zLine | awk '{print $2}' | sed 's|lifepreserver-prop:||d'`"
-      val="`echo $zLine | awk '{print $3}'`"
+    dSet="`echo $zLine | awk '{print $1}'`"
+    prop="`echo $zLine | awk '{print $2}' | sed 's/lifepreserver-prop://'`"
+    val="`echo $zLine | awk '{print $3}'`"
 
-      # Don't need to set empty props
-      if [ -z "$val" ] ; then continue ; fi
+    # Remove header
+    echo "$zLine" | grep -q PROPERTY
+    if [ $? -eq 0 ] ; then continue ; fi
 
-      # We can skip setting mountpoint on BEs
-      echo $dSet | grep -q '^ROOT/'
-      if [ $? -eq 0 -a "$prop" = "mountpoint" ] ; then continue; fi
+    # Don't need to set empty props
+    if [ -z "$val" ] ; then continue ; fi
 
-      echo "Setting prop: $dSet $prop = $val"
+    # We can skip setting mountpoint on BEs
+    echo $dSet | grep -q '^ROOT/'
+    if [ $? -eq 0 -a "$prop" = "mountpoint" ] ; then continue; fi
 
-      echo "$dChk" | grep -q '@'
-      if [ $? -eq 0 ] ; then
-        rc_halt "zfs set ${prop}=${val} ${ZPOOLNAME}@${dSet}"
-        continue 
-      fi
-      echo "$dChk" | grep -q '/'
-      if [ $? -eq 0 ] ; then
-        rc_halt "zfs set ${prop}=${val} ${ZPOOLNAME}/${dSet}"
-        continue 
-      fi
-      if [ "$dSet" = "$dChk" ] ; then
-        if [ "$prop" = "mountpoint" ] ; then continue; fi
-        rc_halt "zfs set ${prop}=${val} ${ZPOOLNAME}"
-        continue 
-      fi
+    # Set new property
+    echo "Setting prop: $dSet $prop = $val"
+
+    rc_halt "zfs set ${prop}=${val} ${dSet}"
   done < ${TMPDIR}/.zprops
   rm ${TMPDIR}/.zprops
 
