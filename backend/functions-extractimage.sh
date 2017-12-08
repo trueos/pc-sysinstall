@@ -67,6 +67,10 @@ start_extract_pkg()
   # Don't allow any of the FreeBSD packages to be auto-removed
   pkg -c ${FSMNT} set -y -A 00 -g FreeBSD-\*
 
+  # Workaround to issue in FreeBSD pkg base
+  chroot ${FSMNT} chown root:operator /sbin/shutdown
+  chroot ${FSMNT} chmod 4554 /sbin/shutdown
+
   # Unmount packages
   rc_halt "umount -f ${FSMNT}/packages"
 
