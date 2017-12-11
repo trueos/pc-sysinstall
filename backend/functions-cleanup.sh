@@ -419,4 +419,8 @@ run_final_cleanup()
   # Generate the fstab for the installed system
   setup_fstab
 
+  # Workaround to issue in FreeBSD pkg base
+  rc_nohalt "chroot ${FSMNT} chown root:operator /sbin/shutdown"
+  rc_nohalt "chroot ${FSMNT} chmod 4554 /sbin/shutdown"
+
 };

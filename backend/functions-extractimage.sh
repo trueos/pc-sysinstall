@@ -68,8 +68,8 @@ start_extract_pkg()
   pkg -c ${FSMNT} set -y -A 00 -g FreeBSD-\*
 
   # Workaround to issue in FreeBSD pkg base
-  chroot ${FSMNT} chown root:operator /sbin/shutdown
-  chroot ${FSMNT} chmod 4554 /sbin/shutdown
+  rc_nohalt "chroot ${FSMNT} chown root:operator /sbin/shutdown"
+  rc_nohalt "chroot ${FSMNT} chmod 4554 /sbin/shutdown"
 
   # Unmount packages
   rc_halt "umount -f ${FSMNT}/packages"
