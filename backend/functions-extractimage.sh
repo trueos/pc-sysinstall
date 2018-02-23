@@ -146,7 +146,7 @@ start_extract_uzip_tar()
 
   get_value_from_cfg installQuiet
   if [ -z "$VAL" -o "$VAL" = "no" ] ; then
-     TAROPTS="${TAROPTS} -v"
+    TAROPTS="${TAROPTS} -v"
   fi
 
   echo_log "pc-sysinstall: Starting Extraction"
@@ -154,10 +154,10 @@ start_extract_uzip_tar()
   case ${PACKAGETYPE} in
     uzip)
       if ! kldstat -v | grep -q "geom_uzip" ; then
-	exit_err "Kernel module geom_uzip not loaded"
+        exit_err "Kernel module geom_uzip not loaded"
       fi
 
-	  # Start by mounting the uzip image
+      # Start by mounting the uzip image
       MDDEVICE=`mdconfig -a -t vnode -o readonly -f ${INSFILE}`
       mkdir -p ${FSMNT}.uzip
       mount -r /dev/${MDDEVICE}.uzip ${FSMNT}.uzip
@@ -183,7 +183,7 @@ start_extract_uzip_tar()
       cd /
       umount ${FSMNT}.uzip
       mdconfig -d -u ${MDDEVICE}
-       ;;
+      ;;
     tar)
       tar -xpv -C ${FSMNT} -f ${INSFILE} ${TAROPTS} >&1 2>&1
       if [ $? -ne 0 ]; then
@@ -191,41 +191,36 @@ start_extract_uzip_tar()
       fi
       ;;
     livecd)
-      # GhostBSD specific (prepare a ro layer to copy from)
-      # Copying file to disk
-      # copying hard links from cd9660 fs result in expanded
-      # individual files instead of links, i.e. making /rescue large as 1GB
-      # bsdtar instead appear to restore hard links correctly
-      tar xvf `cat ${TMPDIR}/cdmnt` -C ${FSMNT}/ --exclude 'dist/*'
-      if [ "$?" != "0" ] ; then
-        exit_err "ERROR: Failed to copy (tar) files"
-      fi
-      # Copying ifvbox to the drive.
-      if [ "$INSTALLTYPE" = "GhostBSD" ] ; then
-        pciconf -lv | grep -q VirtualBox
-        if [ "$?" != "0" ] ; then
-          echo "true" > ${FSMNT}/tmp/.ifvbox
-        else
-          echo "false" > ${FSMNT}/tmp/.ifvbox
-        fi
+      if ! kldstat -v | grep -q "geom_uzip" ; then
+        exit_err "Kernel module geom_uzip not loaded"
       fi
 
-      DEVICE=$(mdconfig -a -t vnode -o readonly -f /dist/uzip${UZIP_DIR}.uzip)
-      mkdir -p  ${CDMNT}${UZIP_DIR}
-      mount -o ro /dev/${DEVICE}.uzip ${CDMNT}${UZIP_DIR}
-      chmod 755 ${FSMNT}/
-
-      rsync -avH --exclude 'media/*' --exclude 'proc/*' --exclude 'mnt/*' --exclude 'tmp/*' --exclude 'dist/*' --exclude 'gbi' --exclude 'cdmnt-install' ${CDMNT}${UZIP_DIR} ${FSMNT}/
-      if [ "$?" != "0" ]
+      # Start by mounting the uzip image
+      MDDEVICE=`mdconfig -a -t vnode -o readonly -f ${INSFILE}`
+      mkdir -p ${FSMNT}.uzip
+      mount -r /dev/${MDDEVICE}.uzip ${FSMNT}.uzip
+      if [ $? -ne 0 ]
       then
-        umount -f ${CDMNT}${UZIP_DIR}
-        mdconfig -d -u ${DEVICE}
-        exit_err "ERROR: Failed to copy (rsync) files"
+        exit_err "ERROR: Failed mounting the ${INSFILE}"
+      fi
+      cd ${FSMNT}.uzip
+
+      # Copy over all the files now!
+      tar cvf - . 2>/dev/null | tar -xp -C ${FSMNT} -f - 2>&1 | tee -a ${FSMNT}/.tar-extract.log
+      if [ $? -ne 0 ]
+      then
+        cd /
+        echo "TAR failure occurred:" >>${LOGOUT}
+        cat ${FSMNT}/.tar-extract.log | grep "tar:" >>${LOGOUT}
+        umount ${FSMNT}.uzip
+        mdconfig -d -u ${MDDEVICE}
+        exit_err "ERROR: Failed extracting the tar image"
       fi
 
-      umount -f ${CDMNT}${UZIP_DIR}
-      mdconfig -d -u ${DEVICE}
-      chmod 1777 ${FSMNT}/tmp
+      # All finished, now lets umount and cleanup
+      cd /
+      umount ${FSMNT}.uzip
+      mdconfig -d -u ${MDDEVICE}
       ;;
   esac
 
@@ -561,34 +556,30 @@ init_extraction()
         uzip) INSFILE="${FBSD_UZIP_FILE}" ;;
         tar) INSFILE="${FBSD_TAR_FILE}" ;;
         dist)
-	  get_value_from_cfg_with_spaces distFiles
-	  if [ -z "$VAL" ] ; then
-	     exit_err "No dist files specified!"
-	  fi
-	  INSFILE="${VAL}"
-  	  ;;
+            get_value_from_cfg_with_spaces distFiles
+            if [ -z "$VAL" ] ; then
+              exit_err "No dist files specified!"
+            fi
+            INSFILE="${VAL}"
+            ;;
         split)
-          INSDIR="${FBSD_BRANCH_DIR}"
-
-          # This is to trick opt_mount into not failing
-          INSFILE="${INSDIR}"
-          ;;
+            INSDIR="${FBSD_BRANCH_DIR}"
+            # This is to trick opt_mount into not failing
+            INSFILE="${INSDIR}"
+            ;;
       esac
-    elif [ "$INSTALLTYPE" = "GhostBSD" ]
-    then
-	# this file identify a GhostBSD DVD/USB image
-	INSFILE="/etc/rc.conf.ghostbsd"
     else
       case $PACKAGETYPE in
         uzip) INSFILE="${UZIP_FILE}" ;;
         tar) INSFILE="${TAR_FILE}" ;;
+        livecd) INSFILE="${SYSTEM_UZIP_FILE}" ;;
         dist)
-	  get_value_from_cfg_with_spaces distFiles
-	  if [ -z "$VAL" ] ; then
-	     exit_err "No dist files specified!"
-	  fi
-	  INSFILE="${VAL}"
-  	  ;;
+          get_value_from_cfg_with_spaces distFiles
+          if [ -z "$VAL" ] ; then
+            exit_err "No dist files specified!"
+          fi
+          INSFILE="${VAL}"
+          ;;
       esac
     fi
     export INSFILE
