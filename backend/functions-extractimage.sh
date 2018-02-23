@@ -191,6 +191,7 @@ start_extract_uzip_tar()
       fi
       ;;
     livecd)
+      # Code to extract livecd build from livebsd code
       if ! kldstat -v | grep -q "geom_uzip" ; then
         exit_err "Kernel module geom_uzip not loaded"
       fi
@@ -556,17 +557,17 @@ init_extraction()
         uzip) INSFILE="${FBSD_UZIP_FILE}" ;;
         tar) INSFILE="${FBSD_TAR_FILE}" ;;
         dist)
-            get_value_from_cfg_with_spaces distFiles
-            if [ -z "$VAL" ] ; then
-              exit_err "No dist files specified!"
-            fi
-            INSFILE="${VAL}"
-            ;;
+          get_value_from_cfg_with_spaces distFiles
+          if [ -z "$VAL" ] ; then
+            exit_err "No dist files specified!"
+          fi
+          INSFILE="${VAL}"
+          ;;
         split)
-            INSDIR="${FBSD_BRANCH_DIR}"
-            # This is to trick opt_mount into not failing
-            INSFILE="${INSDIR}"
-            ;;
+          INSDIR="${FBSD_BRANCH_DIR}"
+          # This is to trick opt_mount into not failing
+          INSFILE="${INSDIR}"
+          ;;
       esac
     else
       case $PACKAGETYPE in
@@ -593,21 +594,21 @@ init_extraction()
       if [ -n "${INSDIR}" ]
       then
         INSDIR="${CDMNT}/${INSDIR}" ; export INSDIR
-	    start_extract_split
+        start_extract_split
 
       else
-	if [ "$PACKAGETYPE" = "dist" ] ; then
+        if [ "$PACKAGETYPE" = "dist" ] ; then
           start_extract_dist "${CDMNT}/usr/freebsd-dist"
-	else
+        else
           INSFILE="${CDMNT}/${INSFILE}" ; export INSFILE
           start_extract_uzip_tar
-	fi
+        fi
       fi
       ;;
 
     ftp)
       case $PACKAGETYPE in
-	 split)
+    split)
            fetch_split_files
 
            INSDIR="${INSFILE}" ; export INSDIR
