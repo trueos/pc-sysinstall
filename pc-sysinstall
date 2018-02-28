@@ -73,6 +73,10 @@ else
   exit 1
 fi
 
+# PKG - I... HATE... YOU...
+IGNORE_OSVERSION="yes"
+export IGNORE_OSVERSION=yes
+
 # Now source our functions.sh 
 if [ -e "${PROGDIR}/backend/functions.sh" ]
 then
