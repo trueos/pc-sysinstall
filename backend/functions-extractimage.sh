@@ -646,6 +646,9 @@ init_extraction()
         start_extract_uzip_tar
       fi
       ;;
+    livecd)
+    start_extract_uzip_tar
+    ;;
     *) exit_err "ERROR: Unknown install medium" ;;
   esac
 
