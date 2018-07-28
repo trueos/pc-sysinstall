@@ -207,12 +207,11 @@ start_extract_uzip_tar()
       cd /tmp/.uzip
 
       # Copy over all the files now!
-      tar cvf - . 2>/dev/null | tar -xp -C ${FSMNT} -f - 2>&1 | tee -a ${FSMNT}/.tar-extract.log
+      tar xvf `cat /tmp/.uzip` -C ${FSMNT}/
       if [ $? -ne 0 ]
       then
         cd /
         echo "TAR failure occurred:" >>${LOGOUT}
-        cat ${FSMNT}/.tar-extract.log | grep "tar:" >>${LOGOUT}
         umount /tmp/.uzip
         mdconfig -d -u ${MDDEVICE}
         exit_err "ERROR: Failed extracting the tar image"
