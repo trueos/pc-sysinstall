@@ -207,14 +207,14 @@ start_extract_uzip_tar()
       cd /tmp/.uzip
 
       # Copy over all the files now!
-      tar xvf `cat /tmp/.uzip` -C ${FSMNT}/
+      rsync -avH  /tmp/.uzip/ ${FSMNT}/
       if [ $? -ne 0 ]
       then
         cd /
-        echo "TAR failure occurred:" >>${LOGOUT}
+        echo "rsync failure occurred:" >>${LOGOUT}
         umount /tmp/.uzip
         mdconfig -d -u ${MDDEVICE}
-        exit_err "ERROR: Failed extracting the tar image"
+        exit_err "ERROR: Failed copy with rsync"
       fi
 
       # All finished, now lets umount and cleanup
