@@ -204,17 +204,17 @@ start_extract_uzip_tar()
       then
         exit_err "ERROR: Failed mounting the ${INSFILE}"
       fi
-      # cd /tmp/.uzip
+      cd /tmp/.uzip
 
       # Copy over all the files now!
-      rsync -azv -H --delete  /tmp/.uzip/ ${FSMNT}/
+      tar cvf - . | tar -xpfv -C ${FSMNT}
       if [ $? -ne 0 ]
       then
         cd /
-        echo "rsync failure occurred:" >> ${LOGOUT}
+        echo "tar failure occurred:" >> ${LOGOUT}
         umount /tmp/.uzip
         mdconfig -d -u ${MDDEVICE}
-        exit_err "ERROR: Failed copy with rsync"
+        exit_err "ERROR: Failed copy with tar"
       fi
 
       # All finished, now lets umount and cleanup
