@@ -206,15 +206,28 @@ start_extract_uzip_tar()
       fi
       cd /tmp/.uzip
 
-      # Copy over all the files now!
-      tar cvf - . | tar -xpfv -C ${FSMNT}
-      if [ $? -ne 0 ]
-      then
+      # Copy base system with tar!
+      echo_log "extracting base system"
+      tar cvf - . 2>/dev/null | tar -xp -C ${FSMNT} --exclude usr/local -v -f - 2>&1 | tee -a ${FSMNT}/.tar-extract.log
+      if [ $? -ne 0 ] ; then
         cd /
-        echo "tar failure occurred:" >> ${LOGOUT}
+        echo "TAR failure occurred:" >>${LOGOUT}
+        cat ${FSMNT}/.tar-extract.log | grep "tar:" >>${LOGOUT}
         umount /tmp/.uzip
         mdconfig -d -u ${MDDEVICE}
-        exit_err "ERROR: Failed copy with tar"
+        exit_err "ERROR: Failed extracting with tar"
+      fi
+
+      # Copy third party software with rsync!
+      echo_log "extracting third party software"
+      rsync -avH  usr/local ${FSMNT}/usr/local 2>&1 | tee -a ${FSMNT}/.rsync-extract.log
+      if [ $? -ne 0 ] ; then
+        cd /
+        echo "RSYNC failure occurred:" >> ${LOGOUT}
+        cat ${FSMNT}/.tar-extract.log | grep "rsync:" >>${LOGOUT}
+        umount /tmp/.uzip
+        mdconfig -d -u ${MDDEVICE}
+        exit_err "ERROR: Failed extracting with rsync"
       fi
 
       # All finished, now lets umount and cleanup
