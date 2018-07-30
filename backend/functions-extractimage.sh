@@ -198,38 +198,41 @@ start_extract_uzip_tar()
 
       # Start by mounting the uzip image
       MDDEVICE=`mdconfig -a -t vnode -o readonly -f ${INSFILE}`
+      sleep 1
+
       mkdir -p /tmp/.uzip
       mount -r /dev/${MDDEVICE}.uzip /tmp/.uzip
       if [ $? -ne 0 ]
       then
         exit_err "ERROR: Failed mounting the ${INSFILE}"
       fi
+      sleep 1
       cd /tmp/.uzip
 
       # Copy base system with tar!
       echo_log "extracting base system"
-      tar -cv --exclude usr/local -f - . --exclude usr/local 2>/dev/null | tar -xp -C ${FSMNT} --exclude usr/local -v -f - 2>&1 | tee -a ${FSMNT}/.tar-extract.log
+      tar -cv --exclude usr/local -f - . 2>/dev/null | tar -xp -C ${FSMNT} --exclude usr/local -v -f -
       if [ $? -ne 0 ] ; then
         cd /
         echo "TAR failure occurred:" >>${LOGOUT}
-        cat ${FSMNT}/.tar-extract.log | grep "tar:" >>${LOGOUT}
         umount /tmp/.uzip
         mdconfig -d -u ${MDDEVICE}
         exit_err "ERROR: Failed extracting with tar"
       fi
 
+      sleep 1
       # Copy third party software with rsync!
       echo_log "extracting third party software"
-      rsync -avH  usr/local ${FSMNT}/usr/ 2>&1 | tee -a ${FSMNT}/.rsync-extract.log
+      rsync -avH  usr/local ${FSMNT}/usr/
       if [ $? -ne 0 ] ; then
         cd /
         echo "RSYNC failure occurred:" >> ${LOGOUT}
-        cat ${FSMNT}/.rsync-extract.log | grep "rsync:" >>${LOGOUT}
         umount /tmp/.uzip
         mdconfig -d -u ${MDDEVICE}
         exit_err "ERROR: Failed extracting with rsync"
       fi
 
+      sleep 1
       # All finished, now lets umount and cleanup
       cd /
       umount /tmp/.uzip
