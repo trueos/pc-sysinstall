@@ -208,7 +208,7 @@ start_extract_uzip_tar()
 
       # Copy base system with tar!
       echo_log "extracting base system"
-      tar cvf - . --exclude usr/local 2>/dev/null | tar -xp -C ${FSMNT} -v -f - 2>&1 | tee -a ${FSMNT}/.tar-extract.log
+      tar -cv --exclude usr/local -f - . --exclude usr/local 2>/dev/null | tar -xp -C ${FSMNT} --exclude usr/local -v -f - 2>&1 | tee -a ${FSMNT}/.tar-extract.log
       if [ $? -ne 0 ] ; then
         cd /
         echo "TAR failure occurred:" >>${LOGOUT}
