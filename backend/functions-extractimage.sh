@@ -191,48 +191,33 @@ start_extract_uzip_tar()
       fi
       ;;
     livecd)
-      # Code to extract livecd build from livebsd code
       if ! kldstat -v | grep -q "geom_uzip" ; then
         exit_err "Kernel module geom_uzip not loaded"
       fi
 
       # Start by mounting the uzip image
       MDDEVICE=`mdconfig -a -t vnode -o readonly -f ${INSFILE}`
-      sleep 1
-
       mkdir -p /tmp/.uzip
-      mount -r /dev/${MDDEVICE}.uzip /tmp/.uzip
+      mount -o ro /dev/${MDDEVICE}.uzip /tmp/.uzip
       if [ $? -ne 0 ]
       then
         exit_err "ERROR: Failed mounting the ${INSFILE}"
       fi
-      sleep 1
+
       cd /tmp/.uzip
 
-      # Copy base system with tar!
-      echo_log "extracting base system"
-      tar -cv --exclude usr/local -f - . 2>/dev/null | tar -xp -C ${FSMNT} --exclude usr/local -v -f -
-      if [ $? -ne 0 ] ; then
+      # Copy over all the files now!
+      tar cvf - . 2>/dev/null | tar -xp -C ${FSMNT} -v -f - 2>&1 | tee -a ${FSMNT}/.tar-extract.log
+      if [ $? -ne 0 ]
+      then
         cd /
-        echo "TAR failure occurred:" >>${LOGOUT}
+        echo "TAR failure occurred:" >> ${LOGOUT}
+        cat ${FSMNT}/.tar-extract.log | grep "tar:" >> ${LOGOUT}
         umount /tmp/.uzip
         mdconfig -d -u ${MDDEVICE}
-        exit_err "ERROR: Failed extracting with tar"
+        exit_err "ERROR: Failed extracting the tar image"
       fi
 
-      sleep 1
-      # Copy third party software with rsync!
-      echo_log "extracting third party software"
-      rsync -avH  usr/local ${FSMNT}/usr/
-      if [ $? -ne 0 ] ; then
-        cd /
-        echo "RSYNC failure occurred:" >> ${LOGOUT}
-        umount /tmp/.uzip
-        mdconfig -d -u ${MDDEVICE}
-        exit_err "ERROR: Failed extracting with rsync"
-      fi
-
-      sleep 1
       # All finished, now lets umount and cleanup
       cd /
       umount /tmp/.uzip
