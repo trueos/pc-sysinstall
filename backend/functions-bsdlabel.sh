@@ -342,6 +342,9 @@ new_gpart_partitions()
   # Lets read in the config file now and setup our partitions
   if [ "${_pType}" = "gpt" ] ; then
     CURPART="2"
+  elif [ "${_pType}" = "newgpt" ] ; then
+    CURPART="${_sNum}"
+    BOOTPART=$((CURPART-1))
   elif [ "${_pType}" = "apm" ] ; then
     CURPART="3"
   elif [ "${_pType}" = "freembr" ] ; then
@@ -477,6 +480,9 @@ new_gpart_partitions()
         if [ "${CURPART}" = "2" -a "$_pType" = "gpt" ] ; then
           export FOUNDROOT="0"
         fi
+        if [ "${dpart}" = "1" -a "$_pType" = "newgpt" ] ; then
+          export FOUNDROOT="0"
+        fi
         if [ "${CURPART}" = "3" -a "$_pType" = "apm" ] ; then
           export FOUNDROOT="0"
         fi
@@ -500,6 +506,9 @@ new_gpart_partitions()
         if [ "${CURPART}" != "2" -a "${_pType}" = "gpt" ] ; then
             exit_err "/boot partition must be first partition"
         fi
+        if [ "${dpart}" = "1" -a "$_pType" = "newgpt" ] ; then
+          exit_err "/boot partition must be first partition"
+        fi
         if [ "${CURPART}" != "3" -a "${_pType}" = "apm" ] ; then
             exit_err "/boot partition must be first partition"
         fi
@@ -520,7 +529,7 @@ new_gpart_partitions()
       PLABEL="${VAL}"
 
       # Get any extra options for this fs / line
-      if [ "${_pType}" = "gpt" ] ; then
+      if [ "${_pType}" = "gpt" -o "$_pType" = "newgpt" ] ; then
         get_fs_line_xvars "${_pDisk}p${CURPART}" "${STRING}"
       elif [ "${_pType}" = "apm" ] ; then
         get_fs_line_xvars "${_pDisk}s${CURPART}" "${STRING}"
@@ -532,7 +541,7 @@ new_gpart_partitions()
       # Check if using zfs mirror
       echo ${XTRAOPTS} | grep -q -e "mirror" -e "raidz"
       if [ $? -eq 0 -a "$FS" = "ZFS" ] ; then
-        if [ "${_pType}" = "gpt" -o "${_pType}" = "gptslice" ] ; then
+        if [ "${_pType}" = "gpt" -o "$_pType" = "newgpt" -o "${_pType}" = "gptslice" ] ; then
 	  setup_zfs_mirror_parts "${XTRAOPTS}" "${_pDisk}p${CURPART}" "${_pDisk}" "${SOUT}" "$ENC"
        	  XTRAOPTS="${ZXTRAOPTS}"
         elif [ "${_pType}" = "apm" ] ; then
@@ -552,7 +561,7 @@ new_gpart_partitions()
       esac
 
       # Create the partition
-      if [ "${_pType}" = "gpt" ] ; then
+      if [ "${_pType}" = "gpt" -o "$_pType" = "newgpt" ] ; then
         sleep 2
 	  aCmd="gpart add -a 4k ${SOUT} -t ${PARTYPE} ${_pDisk}"
       elif [ "${_pType}" = "gptslice" ]; then
@@ -612,7 +621,7 @@ new_gpart_partitions()
       done 
 
       # Save this data to our partition config dir
-      if [ "${_pType}" = "gpt" ] ; then
+      if [ "${_pType}" = "gpt" -o "$_pType" = "newgpt" ] ; then
 	_dFile="`echo $_pDisk | sed 's|/|-|g'`"
         echo "${FS}#${MNT}#${ENC}#${PLABEL}#GPT#${XTRAOPTS}" >${PARTDIR}/${_dFile}p${CURPART}
 
@@ -641,7 +650,7 @@ new_gpart_partitions()
 
 
       # Increment our parts counter
-      if [ "$_pType" = "gpt" ] ; then
+      if [ "$_pType" = "gpt" -o "$_pType" = "newgpt" ] ; then
         CURPART=$(get_next_part "$_pDisk")
         # If this is a gpt partition,
         # we can continue and skip the MBR part letter stuff
@@ -680,6 +689,13 @@ new_gpart_partitions()
         case ${BOOTTYPE} in
           freebsd-ufs) rc_halt "gpart bootcode -b /boot/pmbr -p /boot/gptboot -i 1 ${_pDisk}" ;;
           freebsd-zfs) rc_halt "gpart bootcode -b /boot/pmbr -p /boot/gptzfsboot -i 1 ${_pDisk}" ;;
+        esac 
+      fi
+
+      if [ ! -z "${BOOTTYPE}" -a "$_pType" = "newgpt" -a "$_tBL" != "GRUB" -a "$BOOTMODE" != "UEFI" ] ; then
+        case ${BOOTTYPE} in
+          freebsd-ufs) rc_halt "gpart bootcode -b /boot/pmbr -p /boot/gptboot -i ${BOOTPART} ${_pDisk}" ;;
+          freebsd-zfs) rc_halt "gpart bootcode -b /boot/pmbr -p /boot/gptzfsboot -i ${BOOTPART} ${_pDisk}" ;;
         esac 
       fi
 
@@ -865,7 +881,7 @@ populate_disk_label()
   if [ "$type" = "apm" ] ; then
     wrkslice="${diskid}s${slicenum}"
   fi
-  if [ "$type" = "gpt" -o "$type" = "gptslice" -o "$type" = "freegpt" ] ; then
+  if [ "$type" = "gpt" -o "$type" = "newgpt" -o "$type" = "gptslice" -o "$type" = "freegpt" ] ; then
     wrkslice="${diskid}p${slicenum}"
   fi
 
