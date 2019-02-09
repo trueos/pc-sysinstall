@@ -460,15 +460,15 @@ new_gpart_partitions()
 
       if [ "$SIZE" = "0" ]
       then
-	if [ $USEDAUTOSIZE -eq 1 ] ; then
+        if [ $USEDAUTOSIZE -eq 1 ] ; then
           exit_err "ERROR: You can not have two partitions with a size of 0 specified!"
-	fi
+        fi
         case ${_pType} in
-	  gpt|apm) get_autosize "${_dTag}" "$_pDisk" "$dpart" ;;
-	        *) get_autosize "${_dTag}" "$_wSlice" "$dpart" ;;
+          gpt|newgpt|apm) get_autosize "${_dTag}" "$_pDisk" "$dpart" ;;
+          *) get_autosize "${_dTag}" "$_wSlice" "$dpart" ;;
         esac
         SOUT="-s ${VAL}M"
-	USEDAUTOSIZE=1
+        USEDAUTOSIZE=1
       else
         SOUT="-s ${SIZE}M"
       fi
@@ -495,9 +495,9 @@ new_gpart_partitions()
         if [ "$_pType" = "free" ] ; then
           export FOUNDROOT="0"
         fi
-	if [ -n "$FREESPACEINSTALL" ] ; then
+        if [ -n "$FREESPACEINSTALL" ] ; then
           export FOUNDROOT="0"
-	fi
+        fi
       fi
 
       check_for_mount "${MNT}" "/boot"
@@ -542,14 +542,14 @@ new_gpart_partitions()
       echo ${XTRAOPTS} | grep -q -e "mirror" -e "raidz"
       if [ $? -eq 0 -a "$FS" = "ZFS" ] ; then
         if [ "${_pType}" = "gpt" -o "$_pType" = "newgpt" -o "${_pType}" = "gptslice" ] ; then
-	  setup_zfs_mirror_parts "${XTRAOPTS}" "${_pDisk}p${CURPART}" "${_pDisk}" "${SOUT}" "$ENC"
-       	  XTRAOPTS="${ZXTRAOPTS}"
+          setup_zfs_mirror_parts "${XTRAOPTS}" "${_pDisk}p${CURPART}" "${_pDisk}" "${SOUT}" "$ENC"
+          XTRAOPTS="${ZXTRAOPTS}"
         elif [ "${_pType}" = "apm" ] ; then
-	  setup_zfs_mirror_parts "${XTRAOPTS}" "${_pDisk}s${CURPART}" "${_pDisk}" "${SOUT}" "$ENC"
+          setup_zfs_mirror_parts "${XTRAOPTS}" "${_pDisk}s${CURPART}" "${_pDisk}" "${SOUT}" "$ENC"
        	  XTRAOPTS="${ZXTRAOPTS}"
         else
-	  setup_zfs_mirror_parts "${XTRAOPTS}" "${_wSlice}${PARTLETTER}" "${_pDisk}" "${SOUT}" "$ENC"
-       	  XTRAOPTS="${ZXTRAOPTS}"
+          setup_zfs_mirror_parts "${XTRAOPTS}" "${_wSlice}${PARTLETTER}" "${_pDisk}" "${SOUT}" "$ENC"
+          XTRAOPTS="${ZXTRAOPTS}"
         fi
       fi
 
@@ -563,7 +563,7 @@ new_gpart_partitions()
       # Create the partition
       if [ "${_pType}" = "gpt" -o "$_pType" = "newgpt" ] ; then
         sleep 2
-	  aCmd="gpart add -a 4k ${SOUT} -t ${PARTYPE} ${_pDisk}"
+        aCmd="gpart add -a 4k ${SOUT} -t ${PARTYPE} ${_pDisk}"
       elif [ "${_pType}" = "gptslice" ]; then
         sleep 2
         aCmd="gpart add ${SOUT} -t ${PARTYPE} ${_wSlice}"
@@ -572,16 +572,16 @@ new_gpart_partitions()
         aCmd="gpart add ${SOUT} -t ${PARTYPE} ${_pDisk}"
       else
         sleep 2
-	# MBR type
-	if [ "${INSTALLTYPE}" = "GhostBSD" ] ; then
-	  # From research the first label be aligned with the disk  
-	  aCmd="gpart add -a 4k ${SOUT} -t ${PARTYPE} ${_wSlice}"
-	elif [ "$PARTLETTER" = "a" ] ; then
+        # MBR type
+        if [ "${INSTALLTYPE}" = "GhostBSD" ] ; then
+          # From research the first label be aligned with the disk  
+          aCmd="gpart add -a 4k ${SOUT} -t ${PARTYPE} ${_wSlice}"
+        elif [ "$PARTLETTER" = "a" ] ; then
           # The BOOT/ROOT partition must NOT be aligned
           aCmd="gpart add ${SOUT} -t ${PARTYPE} ${_wSlice}"
-	else
+        else
           aCmd="gpart add -a 4k ${SOUT} -t ${PARTYPE} ${_wSlice}"
-	fi
+        fi
       fi
 
       # Run the gpart add command now
@@ -589,24 +589,24 @@ new_gpart_partitions()
 
       # Check if we need to clone this layout to a ZFS mirror/raidz disk
       if [ -n "$ZFS_CLONE_DISKS" ] ; then
-         for zC in $ZFS_CLONE_DISKS
-         do
-	    echo_log "Cloning disk layout to ZFS disk ${zC}"
-	    rc_halt "gpart add -a 4k ${SOUT} -t ${PARTYPE} ${zC}"
-            if [ "$ENC" = "ON" -a "$PARTYPE" = "freebsd-zfs" ] ; then
-	       export GELI_CLONE_ZFS_DEV="${_pDisk}p${CURPART}"
-	       export GELI_CLONE_ZFS_DISKS="$GELI_CLONE_ZFS_DISKS ${zC}p${CURPART}"
+        for zC in $ZFS_CLONE_DISKS
+        do
+          echo_log "Cloning disk layout to ZFS disk ${zC}"
+          rc_halt "gpart add -a 4k ${SOUT} -t ${PARTYPE} ${zC}"
+          if [ "$ENC" = "ON" -a "$PARTYPE" = "freebsd-zfs" ] ; then
+            export GELI_CLONE_ZFS_DEV="${_pDisk}p${CURPART}"
+            export GELI_CLONE_ZFS_DISKS="$GELI_CLONE_ZFS_DISKS ${zC}p${CURPART}"
+          fi
+          if [ "$PARTYPE" = "freebsd-swap" ] ; then
+            # If this is the first device, save the original swap dev
+            if [ -z "$ZFS_SWAP_DEVS" ] ; then
+            ZFS_SWAP_DEVS="${_pDisk}p${CURPART}"
             fi
-	    if [ "$PARTYPE" = "freebsd-swap" ] ; then
-	       # If this is the first device, save the original swap dev
-	       if [ -z "$ZFS_SWAP_DEVS" ] ; then
-		  ZFS_SWAP_DEVS="${_pDisk}p${CURPART}"
-	       fi
-	       # Save this swap device, we will gmirror it later
-	       ZFS_SWAP_DEVS="${ZFS_SWAP_DEVS} ${zC}p${CURPART}"
-	       export ZFS_SWAP_DEVS
-	    fi
-         done
+            # Save this swap device, we will gmirror it later
+            ZFS_SWAP_DEVS="${ZFS_SWAP_DEVS} ${zC}p${CURPART}"
+            export ZFS_SWAP_DEVS
+          fi
+        done
       fi
 
       # Check if this is a root / boot partition, and stamp the right loader
@@ -622,7 +622,7 @@ new_gpart_partitions()
 
       # Save this data to our partition config dir
       if [ "${_pType}" = "gpt" -o "$_pType" = "newgpt" ] ; then
-	_dFile="`echo $_pDisk | sed 's|/|-|g'`"
+        _dFile="`echo $_pDisk | sed 's|/|-|g'`"
         echo "${FS}#${MNT}#${ENC}#${PLABEL}#GPT#${XTRAOPTS}" >${PARTDIR}/${_dFile}p${CURPART}
 
         # If we have a enc password, save it as well
@@ -630,7 +630,7 @@ new_gpart_partitions()
           echo "${ENCPASS}" >${PARTDIR}-enc/${_dFile}p${CURPART}-encpass
         fi
       elif [ "${_pType}" = "apm" ] ; then
-	_dFile="`echo $_pDisk | sed 's|/|-|g'`"
+        _dFile="`echo $_pDisk | sed 's|/|-|g'`"
         echo "${FS}#${MNT}#${ENC}#${PLABEL}#GPT#${XTRAOPTS}" >${PARTDIR}/${_dFile}s${CURPART}
 
         # If we have a enc password, save it as well
@@ -638,8 +638,8 @@ new_gpart_partitions()
           echo "${ENCPASS}" >${PARTDIR}-enc/${_dFile}s${CURPART}-encpass
         fi
       else
-	# MBR Partition or GPT slice
-	_dFile="`echo $_wSlice | sed 's|/|-|g'`"
+        # MBR Partition or GPT slice
+        _dFile="`echo $_wSlice | sed 's|/|-|g'`"
         echo "${FS}#${MNT}#${ENC}#${PLABEL}#MBR#${XTRAOPTS}#${IMAGE}" >${PARTDIR}/${_dFile}${PARTLETTER}
 
         # If we have a enc password, save it as well
@@ -701,7 +701,7 @@ new_gpart_partitions()
 
       # Make sure to stamp the MBR on NON-ZFS loader
       if [ "$_pType" = "mbr" -a "$_tBL" != "GRUB" -a "$BOOTTYPE" != "freebsd-zfs" ] ; then
-	rc_halt "gpart bootcode -b /boot/boot ${_wSlice}"
+        rc_halt "gpart bootcode -b /boot/boot ${_wSlice}"
       fi
 
       # Found our flag to commit this label setup, check that we found at least 1 partition
