@@ -834,7 +834,7 @@ run_gpart_gpt_part()
   # Adding slice information
   if [ "${INSTALLTYPE}" = "GhostBSD" ] ; then
     # No slice modification for GhostBSD
-    slice=`echo "${1}:${3}:mewgpt" | sed 's|/|-|g'`
+    slice=`echo "${1}:${3}:newgpt" | sed 's|/|-|g'`
   else
     # Add the slice with the :mod tag, so we know we are modifying only
     slice=`echo "${1}:${3}:gpt:mod" | sed 's|/|-|g'`

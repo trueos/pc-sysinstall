@@ -506,7 +506,7 @@ new_gpart_partitions()
         if [ "${CURPART}" != "2" -a "${_pType}" = "gpt" ] ; then
             exit_err "/boot partition must be first partition"
         fi
-        if [ "${dpart}" = "1" -a "$_pType" = "newgpt" ] ; then
+        if [ "${dpart}" != "1" -a "$_pType" = "newgpt" ] ; then
           exit_err "/boot partition must be first partition"
         fi
         if [ "${CURPART}" != "3" -a "${_pType}" = "apm" ] ; then
