@@ -289,192 +289,192 @@ localize_get_codes()
       LOCALE="af_ZA"
       ;;
     ar)
-	  COUNTRY="C"
+      COUNTRY="C"
       SETLANG="ar"
       LOCALE="en_US"
       ;;
     az)
-	  COUNTRY="C"
+      COUNTRY="C"
       SETLANG="az"
       LOCALE="en_US"
       ;;
     ca)
-	  COUNTRY="es"
+      COUNTRY="es"
       SETLANG="es:ca"
       LOCALE="ca_ES"
       ;;
     be)
-	  COUNTRY="be"
+      COUNTRY="be"
       SETLANG="be"
       LOCALE="be_BY"
       ;;
     bn)
-	  COUNTRY="bn"
+      COUNTRY="bn"
       SETLANG="bn"
       LOCALE="en_US"
       ;;
     bg)
-	  COUNTRY="bg"
+      COUNTRY="bg"
       SETLANG="bg"
       LOCALE="bg_BG"
       ;;
     cs)
-	  COUNTRY="cz"
+      COUNTRY="cz"
       SETLANG="cs"
       LOCALE="cs_CZ"
       ;;
     da)
-	  COUNTRY="dk"
+      COUNTRY="dk"
       SETLANG="da"
       LOCALE="da_DK"
       ;;
     de)
-	  COUNTRY="de"
+      COUNTRY="de"
       SETLANG="de"
       LOCALE="de_DE"
       ;;
     en_GB)
-	  COUNTRY="gb"
+      COUNTRY="gb"
       SETLANG="en_GB:cy"
       LOCALE="en_GB"
       ;;
     el)
-	  COUNTRY="gr"
+      COUNTRY="gr"
       SETLANG="el:gr"
       LOCALE="el_GR"
       ;;
     es)
-	  COUNTRY="es"
+      COUNTRY="es"
       SETLANG="es"
       LOCALE="es_ES"
       ;;
     es_LA)
-	  COUNTRY="us"
+      COUNTRY="us"
       SETLANG="es:en_US"
       LOCALE="es_ES"
       ;;
     et)
-	  COUNTRY="ee"
+      COUNTRY="ee"
       SETLANG="et"
       LOCALE="et_EE"
       ;;
     fr)
-	  COUNTRY="fr"
+      COUNTRY="fr"
       SETLANG="fr"
       LOCALE="fr_FR"
       ;;
     fr_CA)
-	  COUNTRY="ca"
+      COUNTRY="ca"
       SETLANG="fr_CA"
       LOCALE="fr_CA"
       ;;
     he)
-	  COUNTRY="il"
+      COUNTRY="il"
       SETLANG="he:ar"
       LOCALE="he_IL"
       ;;
     hr)
-	  COUNTRY="hr"
+      COUNTRY="hr"
       SETLANG="hr"
       LOCALE="hr_HR"
       ;;
     hu)
-	  COUNTRY="hu"
+      COUNTRY="hu"
       SETLANG="hu"
       LOCALE="hu_HU"
       ;;
     it)
-	  COUNTRY="it"
+      COUNTRY="it"
       SETLANG="it"
       LOCALE="it_IT"
       ;;
     ja)
-	  COUNTRY="jp"
+      COUNTRY="jp"
       SETLANG="ja"
       LOCALE="ja_JP"
       ;;
     ko)
-	  COUNTRY="kr"
+      COUNTRY="kr"
       SETLANG="ko"
       LOCALE="ko_KR"
       ;;
     nl)
-	  COUNTRY="nl"
+      COUNTRY="nl"
       SETLANG="nl"
       LOCALE="nl_NL"
       ;;
     nn)
-	  COUNTRY="no"
+      COUNTRY="no"
       SETLANG="nn"
       LOCALE="en_US"
       ;;
     pa)
-	  COUNTRY="pa"
+      COUNTRY="pa"
       SETLANG="pa"
       LOCALE="en_US"
       ;;
     pl)
-	  COUNTRY="pl"
+      COUNTRY="pl"
       SETLANG="pl"
       LOCALE="pl_PL"
       ;;
     pt)
-	  COUNTRY="pt"
+      COUNTRY="pt"
       SETLANG="pt"
       LOCALE="pt_PT"
       ;;
     pt_BR)
-	  COUNTRY="br"
+      COUNTRY="br"
       SETLANG="pt_BR"
       LOCALE="pt_BR"
       ;;
     ro)
-	  COUNTRY="ro"
+      COUNTRY="ro"
       SETLANG="ro_RO"
       LOCALE="ro_RO"
       ;;
     ru)
-	  COUNTRY="ru"
+      COUNTRY="ru"
       SETLANG="ru"
       LOCALE="ru_RU"
       ;;
     sl)
-	  COUNTRY="si"
+      COUNTRY="si"
       SETLANG="sl"
       LOCALE="sl_SI"
       ;;
     sk)
-	  COUNTRY="sk"
+      COUNTRY="sk"
       SETLANG="sk"
       LOCALE="sk_SK"
       ;;
     sv)
-	  COUNTRY="se"
+      COUNTRY="se"
       SETLANG="sv"
       LOCALE="sv_SE"
       ;;
     uk)
-	  COUNTRY="ua"
+      COUNTRY="ua"
       SETLANG="uk"
       LOCALE="uk_UA"
       ;;
     vi)
-	  COUNTRY="vn"
+      COUNTRY="vn"
       SETLANG="vi"
       LOCALE="en_US"
       ;;
     zh_CN)
-	  COUNTRY="cn"
+      COUNTRY="cn"
       SETLANG="zh_CN"
       LOCALE="zh_CN"
       ;;
     zh_TW)
-	  COUNTRY="tw"
+      COUNTRY="tw"
       SETLANG="zh_TW"
       LOCALE="zh_TW"
       ;;
     *)
-	  COUNTRY="C"
+      COUNTRY="C"
       SETLANG="${TARGETLANG}"
       LOCALE="en_US"
       ;;
@@ -497,11 +497,16 @@ set_ntp()
   ENABLED="$1"
   if [ "$ENABLED" = "yes" -o "${ENABLED}" = "YES" ]
   then
-    cat ${FSMNT}/etc/rc.conf 2>/dev/null | grep -q 'ntpd_enable="YES"' 2>/dev/null
-    if [ $? -ne 0 ]
-    then
-      echo 'ntpd_enable="YES"' >>${FSMNT}/etc/rc.conf
-      echo 'ntpd_sync_on_start="YES"' >>${FSMNT}/etc/rc.conf
+    if [ "${INSTALLTYPE}" = "FreeBSD" ] ; then
+      cat ${FSMNT}/etc/rc.conf 2>/dev/null | grep -q 'ntpd_enable="YES"' 2>/dev/null
+      if [ $? -ne 0 ]
+      then
+        echo 'ntpd_enable="YES"' >> ${FSMNT}/etc/rc.conf
+        echo 'ntpd_sync_on_start="YES"' >> ${FSMNT}/etc/rc.conf
+      fi
+    else
+      run_chroot_cmd rc-update add ntpd default
+      run_chroot_cmd sysrc -f /etc/rc.conf ntpd_sync_on_start="YES"
     fi
   else
     cat ${FSMNT}/etc/rc.conf 2>/dev/null | grep -q 'ntpd_enable="YES"' 2>/dev/null
