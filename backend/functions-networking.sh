@@ -1,5 +1,7 @@
 #!/bin/sh
 #-
+# SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+#
 # Copyright (c) 2010 iXsystems, Inc.  All rights reserved.
 # Copyright (c) 2011 The FreeBSD Foundation
 # All rights reserved.
@@ -28,11 +30,11 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD: head/usr.sbin/pc-sysinstall/backend/functions-networking.sh 234987 2012-05-03 21:21:45Z jpaetzel $
+# $FreeBSD$
 
 # Functions which perform our networking setup
 
-# Function which creates a kde4 .desktop file for the PC-BSD net tray
+# Function which creates a kde4 .desktop file for the TrueOS net tray
 create_desktop_nettray()
 {
   NIC="${1}"

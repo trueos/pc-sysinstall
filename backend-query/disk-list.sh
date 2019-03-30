@@ -23,7 +23,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD: head/usr.sbin/pc-sysinstall/backend-query/disk-list.sh 233186 2012-03-19 16:13:14Z jpaetzel $
+# $FreeBSD$
 
 ARGS=$1
 FLAGS_MD=""

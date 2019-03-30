@@ -1,5 +1,7 @@
 #!/bin/sh
 #-
+# SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+#
 # Copyright (c) 2010 iXsystems, Inc.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,7 +25,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD: head/usr.sbin/pc-sysinstall/backend/functions-localize.sh 236330 2012-05-30 20:44:04Z jpaetzel $
+# $FreeBSD$
 
 # Functions which runs commands on the system
 
@@ -86,7 +88,7 @@ localize_x_desktops() {
   fi
 };
 
-# Function which localizes a PC-BSD install
+# Function which localizes a TrueOS install
 localize_pcbsd()
 {
   # Check if we have a localized splash screen and copy it
@@ -531,7 +533,7 @@ run_localize()
       localize_get_codes ${VAL}
 
       get_value_from_string "$line"
-      # If we are doing PC-BSD install, localize it as well as FreeBSD base
+      # If we are doing TrueOS install, localize it as well as FreeBSD base
       if [ "${INSTALLTYPE}" != "FreeBSD" ]
       then
         localize_pcbsd "$VAL"

@@ -27,6 +27,28 @@
 #
 # $FreeBSD$
 
-echo "branch=${FBSD_BRANCH}"
-echo "arch=${FBSD_ARCH}"
-exit 0
+# Script which lists the available packages for this release
+###########################################################################
+
+. ${PROGDIR}/backend/functions.sh
+. ${PROGDIR}/backend/functions-packages.sh
+
+ID=`id -u`
+if [ "${ID}" -ne "0" ]
+then
+  echo "Error: must be root!" 
+  exit 1
+fi
+
+if [ ! -f "${PKGDIR}/INDEX" ]
+then
+  get_package_index
+fi
+
+if [ -f "${PKGDIR}/INDEX" ]
+then
+  echo "${PKGDIR}/INDEX"
+  exit 0
+fi
+
+exit 1

@@ -1,5 +1,7 @@
 #!/bin/sh
 #-
+# SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+#
 # Copyright (c) 2010 iXsystems, Inc.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,7 +25,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD: head/usr.sbin/pc-sysinstall/backend/functions-mountdisk.sh 247735 2013-03-03 23:07:27Z jpaetzel $
+# $FreeBSD$
 
 # Functions related mounting the newly formatted disk partitions
 
@@ -107,7 +109,7 @@ mount_partition()
 
 		# Save this dataset to create
 		mkParents="$chkDir $mkParents"
-		
+
 		# Get the next dir to check
 		chkDir=`dirname $chkDir`
 	done
@@ -118,9 +120,9 @@ mount_partition()
 		do
 			# Since the user didn't explictly specify this dataset
 			# we assume they don't really want it mounted
-        		echo_log "zfs create -o canmount=off -p ${ZPOOLNAME}${p}"
-        		rc_halt "zfs create -o canmount=off -p ${ZPOOLNAME}${p}"
-        		rc_halt "zfs set mountpoint=none ${ZPOOLNAME}${p}"
+			echo_log "zfs create -o canmount=off -p ${ZPOOLNAME}${p}"
+			rc_halt "zfs create -o canmount=off -p ${ZPOOLNAME}${p}"
+			rc_halt "zfs set mountpoint=none ${ZPOOLNAME}${p}"
 		done
 	fi
 
@@ -128,7 +130,6 @@ mount_partition()
         echo_log "zfs create $zcopt -p ${ZPOOLNAME}${ZNAME}"
         rc_halt "zfs create $zcopt -p ${ZPOOLNAME}${ZNAME}"
       fi
-      sleep 2
       if [ -z "$zcopt" ] ; then
         rc_halt "zfs set mountpoint=${FSMNT}${ZMKMNT} ${ZPOOLNAME}${ZNAME}"
       fi

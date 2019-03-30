@@ -1,5 +1,7 @@
 #!/bin/sh
 #-
+# SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+#
 # Copyright (c) 2010 iXsystems, Inc.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,7 +25,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD: head/usr.sbin/pc-sysinstall/backend/functions.sh 247735 2013-03-03 23:07:27Z jpaetzel $
+# $FreeBSD$
 
 # functions.sh
 # Library of functions which pc-sysinstall may call upon
@@ -291,25 +293,12 @@ get_zpool_name()
     # Need to generate a zpool name for this device
     NUM=`ls ${TMPDIR}/.zpools/ | wc -l | sed 's| ||g'`
 
-    # Is it used in another zpool?
-    while :
-    do
-      # If on the 0 device, drop the 0 alltogether
-      if [ "$NUM" = "0" ] ; then
-        NEWNAME="${BASENAME}"
-      else
-        NEWNAME="${BASENAME}${NUM}"
-      fi
-      zpool list | grep -qw "${NEWNAME}"
-      local chk1=$?
-      if [ $chk1 -eq 1 ] ; then
-        # Check any exported pools also
-        zpool import | grep -qw "${NEWNAME}"
-        chk1=$?
-        if [ $chk1 -eq 1 ] ; then break; fi
-      fi
-      NUM=$((NUM+1))
-    done
+    # If on the 0 device, drop the 0 alltogether
+    if [ "$NUM" = "0" ] ; then
+      NEWNAME="${BASENAME}"
+    else
+      NEWNAME="${BASENAME}${NUM}"
+    fi
 
     # Now save the new tank name
     mkdir -p ${TMPDIR}/.zpools/`dirname $DEVICE`
@@ -449,14 +438,14 @@ install_fresh()
 {
   # Lets start setting up the disk slices now
   setup_disk_slice
-  
+
   if [ -z "${ROOTIMAGE}" ]
   then
 
     # Disk setup complete, now lets parse WORKINGSLICES and setup the bsdlabels
     setup_disk_label
-  
-    # Now we've setup the bsdlabels, lets go ahead and run newfs / zfs 
+
+    # Now we've setup the bsdlabels, lets go ahead and run newfs / zfs
     # to setup the filesystems
     setup_filesystems
 
@@ -469,7 +458,7 @@ install_fresh()
     # We are ready to begin extraction, lets start now
     init_extraction
 
-    # Check if we have any optional modules to load 
+    # Check if we have any optional modules to load
     install_components
 
     # Run any pre-package commands
@@ -509,7 +498,7 @@ install_extractonly()
   # We are ready to begin extraction, lets start now
   init_extraction
 
-  # Check if we have any optional modules to load 
+  # Check if we have any optional modules to load
   install_components
 
   # Run any pre-package commands
@@ -529,10 +518,10 @@ install_extractonly()
 
   # Now run any commands specified
   run_commands
-  
+
   # Set a hostname on the install system
   setup_hostname
-      
+
   # Set the root_pw if it is specified
   set_root_pw
 
@@ -549,10 +538,10 @@ install_image()
 
 install_upgrade()
 {
-  # We're going to do an upgrade, skip all the disk setup 
+  # We're going to do an upgrade, skip all the disk setup
   # and start by importing an existing zpool
   mount_zpool_upgrade
-  
+
   # Run any pre-extract commands
   run_preextract_commands
 
@@ -624,4 +613,10 @@ restore_zfs_iscsi()
   do_zfs_restore_iscsi
 
   echo_log "Installation finished!"
+};
+
+run_cmd_wtee()
+{
+  ((((${1} 2>&1 ; echo $? >&3 ) | tee -a ${2} >&4 ) 3>&1) | (read xs; exit $xs)) 4>&1
+  return $?
 };

@@ -1,5 +1,7 @@
 #!/bin/sh
 #-
+# SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+#
 # Copyright (c) 2010 iXsystems, Inc.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,7 +25,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD: head/usr.sbin/pc-sysinstall/backend/functions-packages.sh 247734 2013-03-03 23:01:46Z jpaetzel $
+# $FreeBSD$
 
 # Functions which runs commands on the system
 
@@ -34,9 +36,9 @@
 bootstrap_pkgng()
 {
   # Check if we need to boot-strap pkgng
-  if run_chroot_cmd "which pkg-static" >/dev/null 2>/dev/null
-  then
-     return
+  sync
+  if [ -e "${FSMNT}/usr/local/sbin/pkg-static" ] ; then
+	  return 0
   fi
   local PKGPTH
 
@@ -46,8 +48,8 @@ bootstrap_pkgng()
   # Figure out real location of "pkg" package
   PKGFLAG="add"
   case "${INSTALLMEDIUM}" in
-    usb|dvd|local) rc_halt "cd ${LOCALPATH}/packages"
-		   PKGPTH="/mnt/`ls All/pkg-[0-9]*.txz`"
+    usb|dvd|local) rc_halt "cd ${LOCALPATH}"
+		   PKGPTH="/mnt/`ls pkg-[0-9]*.txz`"
 		   ;;
               ftp) if [ ! -e "${FSMNT}/usr/local/etc/pkg" ] ; then
 		      mkdir ${FSMNT}/usr/local/etc
@@ -61,20 +63,4 @@ bootstrap_pkgng()
           *) PKGPTH="pkg" ;;
   esac
   rc_halt "pkg -c ${FSMNT} ${PKGFLAG} ${PKGPTH}"
-}
-
-get_package_location()
-{
-  if [ ! -d "${FSMNT}/mnt" ] ; then
-    rc_halt "mkdir ${FSMNT}/mnt"
-  fi
-
-  case "${INSTALLMEDIUM}" in
-  usb|dvd) rc_halt "mount_nullfs ${CDMNT}/packages ${FSMNT}/mnt"
-           PKGDLDIR="${FSMNT}/mnt" ;;
-    local) rc_halt "mount_nullfs ${LOCALPATH}/packages ${FSMNT}/mnt"
-           PKGDLDIR="${FSMNT}/mnt" ;;
-        *) PKGDLDIR="${FSMNT}${PKGTMPDIR}" ;;
-  esac
-  export PKGDLDIR
 }

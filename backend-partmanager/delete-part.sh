@@ -27,40 +27,65 @@
 #
 # $FreeBSD$
 
-# Script which sets up password-less logins for ssh host
-###########################################################################
+# Delete a specified partition, takes effect immediately
+########################################################
 
 . ${PROGDIR}/backend/functions.sh
+. ${PROGDIR}/backend/functions-disk.sh
 
-SSHUSER=$1
-SSHHOST=$2
-SSHPORT=$3
-
-if [ -z "${SSHUSER}" -o -z "${SSHHOST}" -o -z "${SSHPORT}" ]
+if [ -z "${1}" ]
 then
-  echo "ERROR: Usage setup-ssh-keys <user> <host> <port>"
-  exit 150
+  echo "Error: No partition specified!"
+  exit 1
 fi
 
-cd ~
-
-echo "Preparing to setup SSH key authorization..."
-echo "When prompted, enter your password for ${SSHUSER}@${SSHHOST}"
-
-if [ ! -e ".ssh/id_rsa.pub" ]
+if [ ! -e "/dev/${1}" ]
 then
-  mkdir .ssh >/dev/null 2>/dev/null
-  ssh-keygen -q -t rsa -N '' -f .ssh/id_rsa
-  sleep 1
+  echo "Error: Partition /dev/${1} does not exist!"
+  exit 1
 fi
 
-if [ ! -e ".ssh/id_rsa.pub" ]
-then
-  echo "ERROR: Failed creating .ssh/id_rsa.pub"
-  exit 150
+PARTITION="${1}"
+
+# First lets figure out the partition number for the given device
+##################################################################
+
+# Get the number of characters in this dev
+CHARS="`echo $PARTITION | wc -c`"
+
+PARTINDEX=""
+
+# Lets read through backwards until we get the part number
+while 
+z=1
+do
+  CHARS=$((CHARS-1))
+  LAST_CHAR=`echo "${PARTITION}" | cut -c $CHARS`
+  echo "${LAST_CHAR}" | grep -q "^[0-9]$" 2>/dev/null
+  if [ $? -eq 0 ] ; then
+    PARTINDEX="${LAST_CHAR}${PARTINDEX}"
+  else
+    break
+  fi
+done
+
+# Now get current disk we are working on
+CHARS=`expr $CHARS - 1`
+DISK="`echo $PARTITION | cut -c 1-${CHARS}`"
+
+# Make sure we have a valid disk name still
+if [ ! -e "/dev/${DISK}" ] ; then
+  echo "Error: Disk: ${DISK} doesn't exist!"
+  exit 1
 fi
 
-# Get the .pub key
-PUBKEY="`cat .ssh/id_rsa.pub`"
+echo "Running: gpart delete -i ${PARTINDEX} ${DISK}"
+gpart delete -i ${PARTINDEX} ${DISK} >/dev/null 2>/dev/null
 
-ssh -p ${SSHPORT} ${SSHUSER}@${SSHHOST} "mkdir .ssh ; echo $PUBKEY >> .ssh/authorized_keys; chmod 600 .ssh/authorized_keys ; echo $PUBKEY >> .ssh/authorized_keys2; chmod 600 .ssh/authorized_keys2"
+# Check if this was the last partition and destroy the disk geom if so
+get_disk_partitions "${DISK}"
+if [ -z "${VAL}" ] ; then
+  gpart destroy ${DISK}  
+fi
+
+exit "$?"

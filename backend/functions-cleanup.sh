@@ -1,5 +1,7 @@
 #!/bin/sh
 #-
+# SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+#
 # Copyright (c) 2010 iXsystems, Inc.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,7 +25,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD: head/usr.sbin/pc-sysinstall/backend/functions-cleanup.sh 240165 2012-09-06 14:59:53Z jpaetzel $
+# $FreeBSD$
 
 # Functions which perform the final cleanup after an install
 
@@ -63,18 +65,13 @@ zfs_cleanup_unmount()
     then
       echo 'zfs_load="YES"' >>${FSMNT}/boot/loader.conf
     fi
-    cat ${FSMNT}/etc/rc.conf 2>/dev/null | grep -q 'zfs_enable="YES"' 2>/dev/null
-    if [ $? -ne 0 ]
-    then
-      echo 'zfs_enable="YES"' >>${FSMNT}/etc/rc.conf
-    fi
-
+   
     sleep 2
     # Copy over any ZFS cache data
-    cp /boot/zfs/* ${FSMNT}/boot/zfs/
+    cp /boot/zfs/* ${FSMNT}/boot/zfs/ >/dev/null 2>/dev/null
 
     # Copy the hostid so that our zfs cache works
-    cp /etc/hostid ${FSMNT}/etc/hostid
+    cp /etc/hostid ${FSMNT}/etc/hostid >/dev/null 2>/dev/null
   fi
 
   # Loop through our FS and see if we have any ZFS partitions to cleanup
@@ -109,11 +106,10 @@ zfs_cleanup_unmount()
         mount | grep -q "${FSMNT}${ZMNT}"
 	if [ $? -eq 0 ] ; then
           echo_log "ZFS Unmount: ${ZPOOLNAME}${ZMNT}"
-          sleep 2
+          sleep 1
           rc_halt "zfs unmount ${ZPOOLNAME}${ZMNT}"
           rc_halt "zfs set mountpoint=${ZMNT} ${ZPOOLNAME}${ZMNT}"
         fi
-        sleep 2
       done
     fi
   done
@@ -236,7 +232,7 @@ setup_fstab()
     fi # End of ZFS Check
   done
 
-  # Setup some specific PC-BSD fstab options
+  # Setup some specific TrueOS fstab options
   if [ "$INSTALLTYPE" != "FreeBSD" ]
   then
     echo "procfs			/proc			procfs		rw		0	0" >> ${FSTAB}
@@ -386,6 +382,7 @@ set_root_pw()
 
 run_final_cleanup()
 {
+
   # Check if we need to run any gmirror setup
   ls ${MIRRORCFGDIR}/* >/dev/null 2>/dev/null
   if [ $? -eq 0 -o -n "$ZFS_SWAP_DEVS" ]

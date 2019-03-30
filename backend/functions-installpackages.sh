@@ -1,5 +1,7 @@
 #!/bin/sh
 #-
+# SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+#
 # Copyright (c) 2010 iXsystems, Inc.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,7 +25,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD: head/usr.sbin/pc-sysinstall/backend/functions-installpackages.sh 247734 2013-03-03 23:01:46Z jpaetzel $
+# $FreeBSD$
 
 # Functions which check and load any optional packages specified in the config
 
@@ -47,88 +49,54 @@ install_packages()
 
   local PKGPTH
 
-  HERE=`pwd`
-  rc_halt "mkdir -p ${FSMNT}${PKGTMPDIR}"
-
-  # Determine the directory we will install packages from
-  get_package_location
-  rc_halt "cd ${PKGDLDIR}"
-
   # We dont want to be bothered with scripts asking questions
   PACKAGE_BUILDING=yes
   export PACKAGE_BUILDING
 
   # Install PKGNG into the chroot
-  bootstrap_pkgng
-
-  # Update the repo database
-  echo "Updating pkgng database"
-  case "${INSTALLMEDIUM}" in
-    usb|dvd|local) run_chroot_cmd "pkg -R /mnt/repo-installer update -f" ;;
-                *) run_chroot_cmd "pkg update -f" ;;
-  esac
+  #bootstrap_pkgng
 
   # Lets start by cleaning up the string and getting it ready to parse
   get_value_from_cfg_with_spaces installPackages
   PACKAGES="${VAL}"
 
-  # When doing an upgrade, check if we need to also install GRUB pkgs
-  if [ -n "$FORCEPKGINSTALLGRUB" ] ; then
-    PACKAGES="$PACKAGES sysutils/grub2-pcbsd sysutils/grub2-efi"
-  fi
+  # Make sure the pkg db dir is ready to install
+  unset PKG_DBDIR
+
+  # Need to setup devfs
+  rc_halt "mount -t devfs devfs ${FSMNT}/dev"
+
+  # Mount dist
+  rc_halt "mkdir ${FSMNT}/dist"
+  rc_halt "mount_nullfs /dist ${FSMNT}/dist"
+  rc_halt "mount_nullfs /etc/pkg ${FSMNT}/etc/pkg"
+
+  # Update the local pkg DB
+  rc_nohalt "pkg update"
 
   echo_log "Packages to install: `echo $PACKAGES | wc -w | awk '{print $1}'`"
   for i in $PACKAGES
   do
     PKGNAME="${i}"
 
-    # When doing a pkg install, if on local media, use a pkg.conf from /dist/
-    if [ "${INSTALLMEDIUM}" != "ftp" ] ; then
-      # Get the package file-name
-      PKGFILENAME=""
-      PKGFILENAME=`chroot ${FSMNT} pkg -R /mnt/repo-installer rquery '%n-%v' ${PKGNAME}`
-      if [ -z "$PKGFILENAME" ] ; then
-         echo_log "Warning: No such package in repo: ${PKGNAME}"
-	 sleep 2
-         continue
-      fi
-      if [ ! -e "${FSMNT}/mnt/All/${PKGFILENAME}.txz" ] ; then
-         echo_log "Warning: No such package file in repo: ${PKGFILENAME}"
-	 sleep 2
-         continue
-      fi
-      PKGADD="pkg add /mnt/All/${PKGFILENAME}.txz"
-    else
-      # Doing a network install, use the default pkg.conf
-      PKGADD="pkg install -y ${PKGNAME}"
-    fi
-
-    PKGINFO="pkg info"
+    # Doing a local install into a different root
+    PKGADD="pkg -c ${FSMNT} install -y ${PKGNAME}"
+    PKGINFO="pkg -c ${FSMNT} info"
 
     # If the package is not already installed, install it!
     if ! run_chroot_cmd "${PKGINFO} -e ${PKGNAME}" >/dev/null 2>/dev/null
     then
+      chroot ${FSMNT} /etc/rc.d/ldconfig start >/dev/null 2>/dev/null
       echo_log "Installing package: ${PKGNAME}"
-      run_chroot_cmd "$PKGADD" 2>&1 | tee -a ${LOGOUT}
+      run_cmd_wtee "$PKGADD" "$LOGOUT"
       if [ $? -ne 0 ] ; then
         exit_err "Failed installing: $PKGADD"
-      fi
-      run_chroot_cmd "rm -rf /usr/local/tmp/All"
-      if ! run_chroot_cmd "${PKGINFO} -e ${PKGNAME}" >/dev/null 2>/dev/null
-      then
-        echo_log "WARNING: PKGNG reported 0, but pkg: ${PKGNAME} does not appear to be installed!"
       fi
     fi
   done
 
+  rc_halt "umount -f ${FSMNT}/dev"
+  rc_halt "umount -f ${FSMNT}/dist"
+  rc_halt "umount -f ${FSMNT}/etc/pkg"
   echo_log "Package installation complete!"
-
-  # Cleanup after ourselves
-  echo_log "Cleaning up: ${FSMNT}${PKGTMPDIR}"
-  sleep 1
-  rc_halt "cd ${HERE}"
-  if [ "${INSTALLMEDIUM}" != "ftp" ] ; then
-    rc_halt "umount ${FSMNT}/mnt" >/dev/null 2>/dev/null
-    rc_halt "rmdir ${FSMNT}${PKGTMPDIR}" >/dev/null 2>/dev/null
-  fi
 };

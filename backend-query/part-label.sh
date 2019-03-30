@@ -1,8 +1,6 @@
 #!/bin/sh
 #-
-# SPDX-License-Identifier: BSD-2-Clause-FreeBSD
-#
-# Copyright (c) 2010 iXsystems, Inc.  All rights reserved.
+# Copyright (c) 2018 iXsystems, Inc.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -25,43 +23,39 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD$
+# $FreeBSD: $
 
-# Query a disk for partitions and display them
-#############################
+# Query mbr partitions label and display them
+##############################
 
 . ${PROGDIR}/backend/functions.sh
 . ${PROGDIR}/backend/functions-disk.sh
 
+
 if [ -z "${1}" ]
 then
-  echo "Error: No disk specified!"
+  echo "Error: No partition specified!"
   exit 1
 fi
 
 if [ ! -e "/dev/${1}" ]
 then
-  echo "Error: Disk /dev/${1} does not exist!"
+  echo "Error: Partition /dev/${1} does not exist!"
   exit 1
 fi
 
-DISK="${1}"
-
-# Now get the disks size in MB
-KB="`diskinfo -v ${1} | grep 'bytes' | cut -d '#' -f 1 | tr -s '\t' ' ' | tr -d ' '`"
-MB=$(convert_byte_to_megabyte ${KB})
-TOTALSIZE="$MB"
-TOTALB="`diskinfo -v ${1} | grep 'in sectors' | tr -s '\t' ' ' | cut -d ' ' -f 2`"
 
 gpart show ${1} >/dev/null 2>/dev/null
 if [ "$?" != "0" ] ; then
-  # No partitions on this disk, display entire disk size and exit
-  echo "${1}-freemb: ${TOTALSIZE}"
-  echo "${1}-freeblocks: ${TOTALB}"
+  # Partitons is not a primary partition
+  echo "${1} is not a primary partition"
   exit
 fi
 
-# Display if this is GPT or MBR formatted
+
+SLICE_PART="${1}"
+TMPDIR=${TMPDIR:-"/tmp"}
+
 TYPE=`gpart show ${1} | awk '/^=>/ { printf("%s",$5); }'`
 echo "${1}-format: $TYPE"
 
@@ -71,31 +65,23 @@ EXTENDED="0"
 START="0"
 SIZEB="0"
 
-# Get a listing of partitions on this disk
-get_disk_partitions "${DISK}"
-PARTS="${VAL}"
-for curpart in $PARTS
+# Get a listing of partitions from the primary partition
+get_partitions_lables "${SLICE_PART}"
+LABELS="${VAL}"
+for curpart in $LABELS
 do
 
   # First get the sysid / label for this partition
-  if [ "$TYPE" = "MBR" ] ; then
-    get_partition_sysid_mbr "${DISK}" "${curpart}"
-    echo "${curpart}-sysid: ${VAL}"
-    get_partition_label_mbr "${DISK}" "${curpart}"
-    echo "${curpart}-label: ${VAL}"
-  else
-    get_partition_label_gpt "${DISK}" "${curpart}"
-    echo "${curpart}-sysid: ${VAL}"
-    echo "${curpart}-label: ${VAL}"
-  fi
+  get_partition_label "${SLICE_PART}" "${curpart}"
+  echo "${curpart}-sysid: ${VAL}"
+  echo "${curpart}-label: ${VAL}"
 
   # Now get the startblock, blocksize and MB size of this partition
-
-  get_partition_startblock "${DISK}" "${curpart}"
+  get_label_startblock "${SLICE_PART}" "${curpart}"
   START="${VAL}"
   echo "${curpart}-blockstart: ${START}"
 
-  get_partition_blocksize "${DISK}" "${curpart}"
+  get_label_blocksize "${SLICE_PART}" "${curpart}"
   SIZEB="${VAL}"
   echo "${curpart}-blocksize: ${SIZEB}"
 
@@ -106,7 +92,8 @@ done
 
 
 # Now calculate any free space
-FREEB=`gpart show ${DISK} | grep '\- free\ -' | awk '{print $2}' | sort -g | tail -1`
+FREEB=`gpart show ${SLICE_PART} | grep '\- free\ -' | awk '{print $2}' | sort -g | tail -1`
 FREEMB="`expr ${FREEB} / 2048`"
 echo "${1}-freemb: $FREEMB"
 echo "${1}-freeblocks: $FREEB"
+
