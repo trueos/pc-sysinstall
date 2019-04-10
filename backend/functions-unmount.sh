@@ -363,7 +363,7 @@ setup_efi_boot()
     fi
 
     # Create the new EFI entry
-    rc_halt "efibootmgr -a -c -l $EFIFILE -L $EFILABEL"
+    rc_halt "efibootmgr -c -l $EFIFILE -L $EFILABEL"
 
     # Cleanup
     rc_halt "umount ${FSMNT}/boot/efi"
