@@ -76,7 +76,12 @@ enable_dhcp_all()
   case $1 in
     IPv4) dFlags="DHCP" ;;
     IPv6) dFlags="IPV6" ;;
-    ALL) dFlags="ALL" ;;
+    ALL) if [ -e "/sbin/openrc" ] ; then
+	    dFlags="ALL"
+	 else
+	    dFlags="DHCP inet6 accept_rtadv"
+	 fi
+	 ;;
       *) dFlags="DHCP" ;;
   esac
 
