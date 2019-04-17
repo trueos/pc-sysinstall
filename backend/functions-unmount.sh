@@ -1,5 +1,7 @@
 #!/bin/sh
 #-
+# SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+#
 # Copyright (c) 2010 iXsystems, Inc.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,7 +25,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD: head/usr.sbin/pc-sysinstall/backend/functions-unmount.sh 232899 2012-03-12 21:32:43Z jpaetzel $
+# $FreeBSD$
 
 # Functions which unmount all mounted disk filesystems
 
@@ -35,7 +37,7 @@ umount_all_dir()
   for _ud in $_umntdirs
   do
     echo_log "Unmounting: ${_ud}"
-    sleep 2
+    sleep 0.5
     umount -f ${_ud}
   done
 }
@@ -330,7 +332,9 @@ setup_efi_boot()
     rc_halt "mount -t msdosfs ${EFIPART} ${FSMNT}/boot/efi"
 
     # Copy the .efi file
-    rc_nohalt "mkdir -p ${FSMNT}/boot/efi/efi/boot"
+    rc_nohalt "mkdir -p ${FSMNT}/boot/efi/EFI/BOOT"
+
+    rc_nohalt "kldload efirt"
 
     # Check if efiLoader is specified
     get_value_from_cfg efiLoader
@@ -339,15 +343,32 @@ setup_efi_boot()
 
     if [ -d '/root/refind' -a "$EFILOADER" = "refind" ] ; then
       # We have refind on the install media, lets use that for dual-boot purposes
-      rc_halt "cp /root/refind/refind_x64.efi ${FSMNT}/boot/efi/efi/boot/BOOTx64.efi"
-      rc_halt "cp /root/refind/refind.conf ${FSMNT}/boot/efi/efi/boot/refind.conf"
-      rc_halt "cp -r /root/refind/icons ${FSMNT}/boot/efi/efi/boot/icons"
-      rc_halt "cp ${FSMNT}/boot/boot1.efi ${FSMNT}/boot/efi/efi/boot/bootx64-trueos.efi"
+      rc_halt "cp /root/refind/refind_x64.efi ${FSMNT}/boot/efi/EFI/BOOT/BOOTX64-REFIND.EFI"
+      rc_halt "cp /root/refind/refind.conf ${FSMNT}/boot/efi/EFI/BOOT/REFIND.CONF"
+      rc_halt "cp -r /root/refind/icons ${FSMNT}/boot/efi/EFI/BOOT/ICONS"
+      rc_halt "cp ${FSMNT}/boot/loader.efi ${FSMNT}/boot/efi/EFI/BOOT/BOOTX64-TRUEOS.EFI"
+      EFIFILE="${FSMNT}/boot/efi/EFI/BOOT/BOOTX64-REFIND.EFI"
+      EFILABEL="TrueOS-rEFInd"
     else
       # BSD Loader only
-      rc_halt "cp ${FSMNT}/boot/boot1.efi ${FSMNT}/boot/efi/efi/boot/BOOTx64.efi"
+      rc_halt "cp ${FSMNT}/boot/loader.efi ${FSMNT}/boot/efi/EFI/BOOT/BOOTX64-TRUEOS.EFI"
+      EFIFILE="${FSMNT}/boot/efi/EFI/BOOT/BOOTX64-TRUEOS.EFI"
+      EFILABEL="TrueOS"
     fi
 
+    # Check if this label already exists and delete if so
+    EFINUM=$(efibootmgr | grep $EFILABEL | awk '{print $1}' | sed 's|+||g' | sed 's|*||g')
+    if [ -n "$EFINUM" ] ; then
+	rc_nohalt "efibootmgr -B -b $EFINUM"
+    fi
+
+    # Create the new EFI entry
+    rc_halt "efibootmgr -c -l $EFIFILE -L $EFILABEL"
+    #Try to activate this new entry
+    EFINUM=$(efibootmgr | grep $EFILABEL | awk '{print $1}' | sed 's|+||g' | sed 's|*||g')
+    if [ -n "$EFINUM" ] ; then
+      rc_nohalt "efibootmgr -a -b $EFINUM"
+    fi
     # Cleanup
     rc_halt "umount ${FSMNT}/boot/efi"
   done
@@ -389,6 +410,6 @@ post_install_boot_setup()
     fi
   fi
 
-  sleep 2
+  sleep 1
   rc_halt "umount ${FSMNT}/dev"
 }

@@ -1,6 +1,8 @@
 #!/bin/sh
 #-
-# Copyright (c) 2010 iXsystems, Inc.  All rights reserved.
+# SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+#
+# Copyright (c) 2018 iXsystems, Inc.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -23,7 +25,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD: head/usr.sbin/pc-sysinstall/backend-query/detect-nics.sh 209751 2010-07-06 23:29:55Z imp $
+# $FreeBSD$
 
 for i in $(ifconfig -l); do
   case "${i%%[0-9]*}" in

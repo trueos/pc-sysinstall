@@ -1,5 +1,7 @@
 #!/bin/sh
 #-
+# SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+#
 # Copyright (c) 2010 iXsystems, Inc.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,7 +25,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD: head/usr.sbin/pc-sysinstall/backend/functions-bsdlabel.sh 247735 2013-03-03 23:07:27Z jpaetzel $
+# $FreeBSD$
 
 # Functions related to disk operations using bsdlabel
 
@@ -154,11 +156,14 @@ setup_zfs_mirror_parts()
       if [ "$_tBL" != "GRUB" -a "$BOOTMODE" != "UEFI" ] ; then
         rc_halt "gpart bootcode -b /boot/pmbr -p /boot/gptzfsboot -i 1 ${_zvars}"
       fi
+      # Clean up zpool labels as we go so we don't confuse zpool import
       # If GELI is enabled
       if [ "$ENC" = "ON" ] ; then
         _nZFS="$_nZFS ${_zvars}p2.eli"
+        rc_nohalt "zpool label clear ${_zvars}p2.eli"
       else
         _nZFS="$_nZFS ${_zvars}p2"
+        rc_nohalt "zpool label clear ${_zvars}p2"
       fi
     else
       _nZFS="$_nZFS ${_zvars}"

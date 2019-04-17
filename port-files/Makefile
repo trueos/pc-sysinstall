@@ -6,7 +6,7 @@ PORTVERSION=	%%CHGVERSION%%
 CATEGORIES=	sysutils
 
 MAINTAINER=	kmoore@FreeBSD.org
-COMMENT=	PC-BSD install backend
+COMMENT=	TrueOS install backend
 
 LICENSE=	BSD2CLAUSE
 

@@ -1,4 +1,6 @@
 #!/bin/sh
+#-
+# SPDX-License-Identifier: BSD-2-Clause-FreeBSD
 #
 # Copyright (c) 2014 iXsystems, Inc.  All rights reserved.
 #
@@ -23,7 +25,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD: head/usr.sbin/pc-sysinstall/backend/functions-newfs.sh 247735 2013-03-03 23:07:27Z jpaetzel $
+# $FreeBSD$
 
 # Functions related to disk operations using newfs
 
@@ -79,9 +81,23 @@ setup_zfs_filesystem()
   # Get the default zpool flags
   get_zpool_flags
 
-  if [ -n "${ZFSFORCE4K}" ] ; then
-    # Set minimum ashift to 4K mode
-    sysctl vfs.zfs.min_auto_ashift=12
+  if [ -n "${ZFSASHIFT}" ] ; then
+    # Set specifed ashift size
+    sysctl vfs.zfs.min_auto_ashift=${ZFSASHIFT}
+  fi
+
+  # Verify this pool isn't already in use
+  zpool list | grep -qw "${ZPOOLNAME}"
+  if [ $? -eq 0 ] ; then
+    exit_err "The poolname: $ZPOOLNAME is already in use locally!"
+  fi
+
+  # Verify this pool isn't lingering on another disk
+  zpool import | grep -qw "${ZPOOLNAME}"
+  if [ $? -eq 0 ] ; then
+    # Need to clear out this pool name so we can re-create
+    rc_halt "zpool import -f -N ${ZPOOLNAME}"
+    rc_halt "zpool destroy -f ${ZPOOLNAME}"
   fi
 
   if [ -n "${ZPOOLOPTS}" ] ; then
@@ -133,6 +149,7 @@ setup_filesystems()
     then
       echo_log "Creating geli provider for ${PARTDEV}"
 
+      rc_halt "kldstat -v |grep -q g_eli || kldload geom_eli"
       if [ -e "${PARTDIR}-enc/${PART}-encpass" ] ; then
 	# Using a passphrase
         rc_halt "geli init -g -b -J ${PARTDIR}-enc/${PART}-encpass ${PARTDEV}"
@@ -265,6 +282,7 @@ setup_filesystems()
 # Takes a list of args to setup as a swapmirror
 setup_gmirror_swap()
 {
+  rc_halt "kldstat -v |grep -q g_mirror || kldload geom_mirror"
   rc_nohalt "gmirror destroy swapmirror"
   rc_halt "gmirror label swapmirror ${@}"
 }

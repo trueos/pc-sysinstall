@@ -1,5 +1,7 @@
 #!/bin/sh
 #-
+# SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+#
 # Copyright (c) 2010 iXsystems, Inc.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,7 +25,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD: head/usr.sbin/pc-sysinstall/backend/functions-extractimage.sh 247705 2013-03-03 09:47:47Z jpaetzel $
+# $FreeBSD$
 
 # Functions which perform the extraction / installation of system to disk
 
@@ -35,45 +37,69 @@ start_extract_pkg()
   # Set the default ABI
   ABI="FreeBSD:`uname -r | cut -d '.' -f 1`:`uname -m`"
   export ABI
+  export IGNORE_OSVERSION="YES"
 
-  # Ugly hack to get distribution files on disk until pkg DTRT
-  if [ -e "${1}/packages/All/fbsd-distrib.txz" ] ; then
-    rc_nohalt "tar xvpf ${1}/packages/All/fbsd-distrib.txz -C ${FSMNT}"
+  # Make sure the pkg db dir is ready to install
+  rc_nohalt "mkdir -p ${FSMNT}/var/db/pkg"
+  export PKG_DBDIR="${FSMNT}/var/db/pkg"
+
+  # Update the local pkg DB
+  rc_nohalt "pkg update"
+
+  # Are we using legacy pkg-base system or new?
+  pkg rquery '%v' os/userland >/dev/null 2>/dev/null
+  if [ $? -eq 0 ] ; then
+	  install_ports_base
+  else
+	  install_legacy_base
   fi
 
-  # Create some common mountpoints that pkgng doesn't do right now
-  for mpnt in dev compat mnt proc root var/run
+  # Workaround to issue in FreeBSD pkg base
+  rc_nohalt "chroot ${FSMNT} chown root:operator /sbin/shutdown"
+  rc_nohalt "chroot ${FSMNT} chmod 4554 /sbin/shutdown"
+}
+
+install_ports_base()
+{
+  # Install the default os/userland and os/kernel
+  for inspkg in os/userland os/kernel ports-mgmt/pkg
   do
-    if [ ! -d "${FSMNT}/${mpnt}" ] ; then
-      rc_halt "mkdir -p ${FSMNT}/${mpnt}"
+    # Skip any {debug|development} packages
+    echo_log "pkg -r ${FSMNT} install -yf $inspkg"
+    env ASSUME_ALWAYS_YES=YES pkg -r ${FSMNT} install -yf $inspkg
+    if [ $? -ne 0 ] ; then
+      exit_err "Failed installing $inspkg!"
     fi
   done
 
-  # Mount the packages into the chroot
-  rc_nohalt "mkdir -p ${FSMNT}/packages"
-  rc_halt "mount_nullfs ${1}/packages ${FSMNT}/packages"
+  unset PKG_DBDIR
+  echo_log "chroot ${FSMNT} pkg set -y -A 00 os/userland"
+  chroot ${FSMNT} pkg set -y -A 00 os/userland
+  chroot ${FSMNT} pkg set -y -A 00 os/kernel
+}
+
+install_legacy_base()
+{
+  # Figure out the base package name, if its FreeBSD or $OTHER
+  BASENAME=$(pkg rquery '%o %n-%v' | grep ^base | grep -e '-runtime-' | head -n 1 | awk '{print $2}' | cut -d '-' -f 1)
 
   # Do the package installation
-  for pkg in `ls ${FSMNT}/packages/All/FreeBSD-*`
+  for inspkg in `pkg rquery '%o %n' | grep "^base" | awk '{print $2}' | tr -s '\n' ' '`
   do
-    inspkg=$(basename $pkg)
-    echo_log "pkg -c ${FSMNT} add /packages/All/$inspkg"
-    env ASSUME_ALWAYS_YES=YES pkg -c ${FSMNT} add -f /packages/All/$inspkg
+    # Skip any {debug|development} packages
+    echo "$inspkg" | grep -q -e '-debug-' -e '-profile-'
+    if [ $? -eq 0 ] ; then continue ; fi
+    echo_log "pkg -r ${FSMNT} install -yf $inspkg"
+    env ASSUME_ALWAYS_YES=YES pkg -r ${FSMNT} install -yf $inspkg
     if [ $? -ne 0 ] ; then
       exit_err "Failed installing $inspkg!"
     fi
   done
 
   # Don't allow any of the FreeBSD packages to be auto-removed
-  pkg -c ${FSMNT} set -y -A 00 -g FreeBSD-\*
-
-  # Workaround to issue in FreeBSD pkg base
-  rc_nohalt "chroot ${FSMNT} chown root:operator /sbin/shutdown"
-  rc_nohalt "chroot ${FSMNT} chmod 4554 /sbin/shutdown"
-
-  # Unmount packages
-  rc_halt "umount -f ${FSMNT}/packages"
-
+  unset PKG_DBDIR
+  echo_log "chroot ${FSMNT} pkg set -y -A 00 -g $BASENAME-*"
+  chroot ${FSMNT} pkg set -y -A 00 -g $BASENAME-\*
 }
 
 # Performs the extraction of data to disk from FreeBSD dist files
@@ -647,8 +673,8 @@ init_extraction()
       fi
       ;;
     livecd)
-    start_extract_uzip_tar
-    ;;
+      start_extract_uzip_tar
+      ;;
     *) exit_err "ERROR: Unknown install medium" ;;
   esac
 
