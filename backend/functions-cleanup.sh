@@ -240,6 +240,12 @@ setup_fstab()
     if [ ! -d "${FSMNT}/compat/linux/proc" ] ; then
       mkdir -p ${FSMNT}/compat/linux/proc
     fi
+    if [ "$INSTALLTYPE" = "GhostBSD" ] ; then
+      echo "tmpfs /compat/linux/dev/shm tmpfs rw,mode=1777 0 0" >> ${FSTAB}
+      if [ ! -d "${FSMNT}/compat/linux/dev/shm" ] ; then
+        mkdir -p ${FSMNT}/compat/linux/dev/shm
+      fi
+    fi
   fi
 
   # If we have a dedicated /boot, run the post-install setup of it now

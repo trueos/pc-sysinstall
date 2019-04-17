@@ -613,8 +613,8 @@ setup_disk_slice()
             run_gpart_slice "${DISK}" "${BMANAGER}" "${s}"
             ;;
 
-          p1|p2|p3|p4|p5|p6|p7|p8|p9|p10|p11|p12|p13|p14|p15|p16|p17|p18|p19|p20|p21|p22|p23|p24|p25|p26|p27)
-            tmpSLICE="${DISK}${PTYPE}"
+          p1|p2|p3|p4|p5|p6|p7|p8|p9|p10|p11|p12|p13|p14|p15|p16|p17|p18|p19|p20|p21|p22|p23|p24|p25|p26|p27|p28|p29|p30)
+            tmpSLICE="${DISK}${PTYPE}" 
             # Get the number of the gpt partition we are working on
             s="`echo ${PTYPE} | cut -c 2-3`"
             run_gpart_gpt_part "${DISK}" "${BMANAGER}" "${s}"
@@ -919,10 +919,9 @@ run_gpart_gpt_part()
   fi
 
   # Adding slice information
-  if [ "${INSTALLTYPE}" = "GhostBSD" ]
-  then
+  if [ "${INSTALLTYPE}" = "GhostBSD" ] ; then
     # No slice modification for GhostBSD
-    slice=`echo "${1}:${3}:gpt" | sed 's|/|-|g'`
+    slice=`echo "${1}:${3}:newgpt" | sed 's|/|-|g'`
   else
     # Add the slice with the :mod tag, so we know we are modifying only
     slice=`echo "${1}:${3}:gpt:mod" | sed 's|/|-|g'`

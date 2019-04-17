@@ -217,7 +217,6 @@ start_extract_uzip_tar()
       fi
       ;;
     livecd)
-      # Code to extract livecd build from livebsd code
       if ! kldstat -v | grep -q "geom_uzip" ; then
         exit_err "Kernel module geom_uzip not loaded"
       fi
@@ -225,20 +224,21 @@ start_extract_uzip_tar()
       # Start by mounting the uzip image
       MDDEVICE=`mdconfig -a -t vnode -o readonly -f ${INSFILE}`
       mkdir -p /tmp/.uzip
-      mount -r /dev/${MDDEVICE}.uzip /tmp/.uzip
+      mount -o ro /dev/${MDDEVICE}.uzip /tmp/.uzip
       if [ $? -ne 0 ]
       then
         exit_err "ERROR: Failed mounting the ${INSFILE}"
       fi
+
       cd /tmp/.uzip
 
       # Copy over all the files now!
-      tar cvf - . 2>/dev/null | tar -xp -C ${FSMNT} -f - 2>&1 | tee -a ${FSMNT}/.tar-extract.log
+      tar cvf - . 2>/dev/null | tar -xp -C ${FSMNT} -v -f - 2>&1 | tee -a ${FSMNT}/.tar-extract.log
       if [ $? -ne 0 ]
       then
         cd /
-        echo "TAR failure occurred:" >>${LOGOUT}
-        cat ${FSMNT}/.tar-extract.log | grep "tar:" >>${LOGOUT}
+        echo "TAR failure occurred:" >> ${LOGOUT}
+        cat ${FSMNT}/.tar-extract.log | grep "tar:" >> ${LOGOUT}
         umount /tmp/.uzip
         mdconfig -d -u ${MDDEVICE}
         exit_err "ERROR: Failed extracting the tar image"
