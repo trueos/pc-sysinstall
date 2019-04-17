@@ -364,7 +364,11 @@ setup_efi_boot()
 
     # Create the new EFI entry
     rc_halt "efibootmgr -c -l $EFIFILE -L $EFILABEL"
-
+    #Try to activate this new entry
+    EFINUM=$(efibootmgr | grep $EFILABEL | awk '{print $1}' | sed 's|+||g' | sed 's|*||g')
+    if [ -n "$EFINUM" ] ; then
+      rc_nohalt "efibootmgr -a -b $EFINUM"
+    fi
     # Cleanup
     rc_halt "umount ${FSMNT}/boot/efi"
   done
