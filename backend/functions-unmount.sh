@@ -368,7 +368,11 @@ setup_efi_boot()
     EFINUM=$(efibootmgr | grep $EFILABEL | awk '{print $1}' | sed 's|+||g' | sed 's|*||g')
     if [ -n "$EFINUM" ] ; then
       rc_nohalt "efibootmgr -a $EFINUM" #activate it
-      rc_nohalt "efibootmgr -n $EFINUM" #Set is as the next boot default
+      rc_nohalt "efibootmgr -n $EFINUM" #Set it as the next boot default
+    fi
+    # Now ensure the fallback location for the EFI boot partition exists, and make it if needed
+    if [ ! -e "${FSMNT}/boot/efi/EFI/BOOT/BOOTX64.EFI" ] ; then
+      cp "${EFIFILE}" "${FSMNT}/boot/efi/EFI/BOOT/BOOTX64.EFI"
     fi
     # Cleanup
     rc_halt "umount ${FSMNT}/boot/efi"
