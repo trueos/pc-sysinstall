@@ -61,8 +61,14 @@ start_extract_pkg()
 
 install_ports_base()
 {
-  # Install the default generic flavor
-  for inspkg in os-generic-userland os-generic-kernel ports-mgmt/pkg
+  BFLAVOR="generic"
+  get_value_from_cfg baseFlavor
+  if [ -n "$VAL" ] ; then
+	  BFLAVOR="${VAL}"
+  fi
+
+  # Install the specified OS flavor
+  for inspkg in os-${BFLAVOR}-userland os-${BFLAVOR}-kernel ports-mgmt/pkg
   do
     # Skip any {debug|development} packages
     echo_log "pkg -r ${FSMNT} install -yf $inspkg"
@@ -73,9 +79,10 @@ install_ports_base()
   done
 
   unset PKG_DBDIR
-  echo_log "chroot ${FSMNT} pkg set -y -A 00 os/userland"
-  chroot ${FSMNT} pkg set -y -A 00 os/userland
-  chroot ${FSMNT} pkg set -y -A 00 os/kernel
+  echo_log "chroot ${FSMNT} pkg set -y -A 00 os-${BFLAVOR}-userland"
+  chroot ${FSMNT} pkg set -y -A 00 os-${BFLAVOR}-userland
+  chroot ${FSMNT} pkg set -y -A 00 os-${BFLAVOR}-kernel
+  chroot ${FSMNT} pkg set -y -A 00 ports-mgmt/pkg
 }
 
 install_legacy_base()
