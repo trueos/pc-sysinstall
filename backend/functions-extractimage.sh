@@ -61,8 +61,8 @@ start_extract_pkg()
 
 install_ports_base()
 {
-  # Install the default os/userland and os/kernel
-  for inspkg in os/userland os/kernel ports-mgmt/pkg
+  # Install the default generic flavor
+  for inspkg in os-generic-userland os-generic-kernel ports-mgmt/pkg
   do
     # Skip any {debug|development} packages
     echo_log "pkg -r ${FSMNT} install -yf $inspkg"
