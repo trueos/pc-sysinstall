@@ -324,9 +324,9 @@ get_autosize()
   # Pad the size a bit
   _aSize=`expr $_aSize - 5`
 
-  # If installing to UEFI, save 100MB for UEFI partition
+  # If installing to UEFI, save 260MB for UEFI partition
   if [ "$BOOTMODE" = "UEFI" ]; then
-    _aSize=`expr $_aSize - 100`
+    _aSize=`expr $_aSize - 260`
   fi
 
   VAL="$_aSize"
