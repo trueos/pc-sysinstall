@@ -780,7 +780,7 @@ init_gpt_full_disk()
   # Check the boot mode we are using {pc|efi}
   if [ "$BOOTMODE" = "UEFI" ]; then
     # Need to enable EFI booting, lets add the partition
-    rc_halt "gpart add -a 4k -s 100M -t efi ${_intDISK}"
+    rc_halt "gpart add -a 4k -s 260M -t efi ${_intDISK}"
     rc_halt "newfs_msdos -F 16 ${_intDISK}p1"
     if [ -z "${EFI_POST_SETUP}" ] ; then
       EFI_POST_SETUP="${_intDISK}"
