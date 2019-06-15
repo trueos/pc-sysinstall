@@ -59,14 +59,15 @@ zfs_cleanup_unmount()
 
   if [ -n "${FOUNDZFS}" ]
   then
-    # Check if we need to add our ZFS flags to rc.conf, src.conf and loader.conf
-    cat ${FSMNT}/boot/loader.conf 2>/dev/null | grep -q 'zfs_load="YES"' 2>/dev/null
-    if [ $? -ne 0 ]
-    then
-      echo 'zfs_load="YES"' >>${FSMNT}/boot/loader.conf
+
+    if [ -e "${FSMNT}/boot/modules/openzfs.ko" ] ; then
+      # Using OpenZFS from ports
+      sysrc -f ${FSMNT}/boot/loader.conf openzfs_load=YES
+    else
+      # Using ZFS from base
+      sysrc -f ${FSMNT}/boot/loader.conf zfs_load=YES
     fi
    
-    sleep 2
     # Copy over any ZFS cache data
     cp /boot/zfs/* ${FSMNT}/boot/zfs/ >/dev/null 2>/dev/null
 
