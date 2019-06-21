@@ -721,8 +721,8 @@ stop_gjournal()
 clear_backup_gpt_table()
 {
   echo_log "Clearing gpt backup table location on disk"
-  rc_nohalt "dd if=/dev/zero of=${1} bs=1m count=1"
-  rc_nohalt "dd if=/dev/zero of=${1} bs=1m oseek=`diskinfo ${1} | awk '{print int($3 / (1024*1024)) - 4;}'`"
+  rc_nohalt "dd if=/dev/zero of=${1} bs=1m count=5"
+  rc_nohalt "dd if=/dev/zero of=${1} bs=1m oseek=`diskinfo ${1} | awk '{print int($3 / (1024*1024)) - 5;}'`"
 } ;
 
 # Function which runs gpart and creates a single large APM partition scheme
