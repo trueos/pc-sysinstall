@@ -346,6 +346,25 @@ delete_all_gpart()
 
 };
 
+# Function to check/delete a zpool as needed
+delete_old_zpool(){
+  local POOLNAME=$(grep -E "^zpoolName=" ${CFGF} | head -n 1 | cut -d "=" -f 2- | tr -d ' ' )
+  if [ -z "${POOLNAME}" ] ; then return ; fi
+  # Verify this pool isn't already in use
+  zpool list | grep -qw "${POOLNAME}"
+  if [ $? -eq 0 ] ; then
+    exit_err "The poolname: $POOLNAME is already in use locally!"
+  fi
+
+  # Verify this pool isn't lingering on another disk
+  zpool import | grep -qw "${POOLNAME}"
+  if [ $? -eq 0 ] ; then
+    # Need to clear out this pool name so we can re-create
+    rc_halt "zpool import -f -N ${POOLNAME}"
+    rc_halt "zpool destroy -f ${POOLNAME}"
+  fi
+}
+
 # Function to export all zpools before starting an install
 stop_all_zfs()
 {
@@ -403,7 +422,8 @@ stop_all_geli()
 # Function which reads in the disk slice config, and performs it
 setup_disk_slice()
 {
-
+  # Delete any existing ZFS Pools with the same name as the desired pool
+  delete_old_zpool()
   # Cleanup any slice / mirror dirs
   rm -rf ${SLICECFGDIR} >/dev/null 2>/dev/null
   mkdir ${SLICECFGDIR}
